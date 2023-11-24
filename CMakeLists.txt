@@ -2,9 +2,17 @@ cmake_minimum_required(VERSION 3.20)
 
 project("brick-breaker" LANGUAGES CXX)
 
-add_subdirectory(extern/SDL)
+set(BUILD_SHARED_LIBS OFF)
+set(SDL_SHARED OFF)
+set(SDL_STATIC ON)
 
-add_executable(brick_breaker "src/main.cpp")
+add_subdirectory(extern/SDL EXCLUDE_FROM_ALL)
+
+add_executable(brick_breaker
+    "src/application.cpp"
+    "src/application.hpp"
+    "src/main.cpp"
+)
 
 target_link_libraries(brick_breaker PRIVATE SDL2::SDL2-static)
 
