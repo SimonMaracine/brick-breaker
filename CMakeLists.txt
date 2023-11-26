@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.20)
 
-project("brick-breaker" LANGUAGES CXX)
+project("brick-breaker" LANGUAGES CXX C)
+
+add_library(glad STATIC "extern/glad/src/glad.c")
+
+target_include_directories(glad PUBLIC "extern/glad/include")
 
 set(BUILD_SHARED_LIBS OFF)
 set(SDL_SHARED OFF)
@@ -8,21 +12,21 @@ set(SDL_STATIC ON)
 
 add_subdirectory(extern/SDL EXCLUDE_FROM_ALL)
 
-add_executable(brick_breaker
+add_executable(brick-breaker
     "src/application.cpp"
     "src/application.hpp"
     "src/main.cpp"
 )
 
-target_link_libraries(brick_breaker PRIVATE SDL2::SDL2-static)
+target_link_libraries(brick-breaker PRIVATE SDL2::SDL2-static glad)
 
 if(UNIX)
-    target_compile_options(brick_breaker PRIVATE "-Wall" "-Wextra" "-Wpedantic")
+    target_compile_options(brick-breaker PRIVATE "-Wall" "-Wextra" "-Wpedantic")
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    target_compile_options(brick_breaker PRIVATE "/W3")
+    target_compile_options(brick-breaker PRIVATE "/W3")
 else()
     message(WARNING "Compiler is not MSVC or platform is not supported, warnings are not enabled")
 endif()
 
-target_compile_features(brick_breaker PRIVATE cxx_std_17)
-set_target_properties(brick_breaker PROPERTIES CXX_EXTENSIONS OFF)
+target_compile_features(brick-breaker PRIVATE cxx_std_17)
+set_target_properties(brick-breaker PROPERTIES CXX_EXTENSIONS OFF)

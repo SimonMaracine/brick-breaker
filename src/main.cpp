@@ -1,4 +1,5 @@
 #include <SDL.h>
+#include <glad/glad.h>
 
 int main() {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -26,9 +27,15 @@ int main() {
 
     SDL_GLContext context {SDL_GL_CreateContext(window)};
 
+    if (!gladLoadGL()) {
+        return 1;
+    }
+
     if (SDL_GL_SetSwapInterval(1) < 0) {
         return 1;
     }
+
+    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
 
     bool running {true};
 
@@ -42,6 +49,8 @@ int main() {
                     break;
             }
         }
+
+        glClear(GL_COLOR_BUFFER_BIT);
 
         // Rendering...
 
