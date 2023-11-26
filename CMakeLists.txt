@@ -13,12 +13,22 @@ set(SDL_STATIC ON)
 add_subdirectory(extern/SDL EXCLUDE_FROM_ALL)
 
 add_executable(brick-breaker
-    "src/application.cpp"
-    "src/application.hpp"
+    "src/engine/application_properties.hpp"
+    "src/engine/application.cpp"
+    "src/engine/application.hpp"
+    "src/engine/engine.hpp"
+    "src/engine/events.cpp"
+    "src/engine/events.hpp"
+    "src/engine/logging.cpp"
+    "src/engine/logging.hpp"
+    "src/engine/window.cpp"
+    "src/engine/window.hpp"
     "src/main.cpp"
 )
 
 target_link_libraries(brick-breaker PRIVATE SDL2::SDL2-static glad)
+
+target_include_directories(brick-breaker PRIVATE "src")
 
 if(UNIX)
     target_compile_options(brick-breaker PRIVATE "-Wall" "-Wextra" "-Wpedantic")
