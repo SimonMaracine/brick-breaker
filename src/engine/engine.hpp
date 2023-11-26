@@ -7,4 +7,5 @@
 #include "events.hpp"
 #include "logging.hpp"
 #include "panic.hpp"
+#include "scene.hpp"
 #include "window.hpp"
