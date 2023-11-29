@@ -6,7 +6,7 @@
 #include "engine/events.hpp"
 
 namespace bb {
-    void EventSystem::connect(EventType type, const std::function<void(const Event&)>& callback) {
+    void EventSystem::connect(EventType type, const EventCallback& callback) {
         callbacks[type] = callback;
     }
 

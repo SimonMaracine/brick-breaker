@@ -1,5 +1,4 @@
 #include <string>
-#include <cstdint>
 
 #include <glad/glad.h>
 #include <SDL.h>
@@ -8,6 +7,7 @@
 #include "engine/panic.hpp"
 #include "engine/logging.hpp"
 #include "engine/application.hpp"
+#include "engine/input.hpp"
 
 namespace bb {
     Window::Window(int width, int height, const std::string& title, bool fullscreen, Application* application)
@@ -23,7 +23,7 @@ namespace bb {
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-        std::uint32_t flags {SDL_WINDOW_OPENGL};
+        unsigned int flags {SDL_WINDOW_OPENGL};
 
         if (fullscreen) {
             flags |= SDL_WINDOW_FULLSCREEN;
@@ -70,24 +70,49 @@ namespace bb {
                     application->events.enqueue(EventType::WindowClosed);
 
                     break;
+                case SDL_WINDOWEVENT:
+                    // TODO
+
+                    break;
                 case SDL_KEYDOWN:
-                    // event.key.keysym.sym
+                    application->events.enqueue(EventType::KeyPressed, static_cast<KeyCode>(event.key.keysym.sym));
 
                     break;
                 case SDL_KEYUP:
-                    // event.key.keysym.sym
+                    application->events.enqueue(EventType::KeyReleased, static_cast<KeyCode>(event.key.keysym.sym));
 
                     break;
                 case SDL_MOUSEMOTION:
+                    application->events.enqueue(
+                        EventType::MouseMoved,
+                        event.motion.state,
+                        event.motion.x,
+                        event.motion.y,
+                        event.motion.xrel,
+                        event.motion.yrel
+                    );
 
                     break;
                 case SDL_MOUSEBUTTONDOWN:
+                    application->events.enqueue(
+                        EventType::MouseButtonPressed,
+                        event.button.button,
+                        event.button.x,
+                        event.button.y
+                    );
 
                     break;
                 case SDL_MOUSEBUTTONUP:
+                    application->events.enqueue(
+                        EventType::MouseButtonReleased,
+                        event.button.button,
+                        event.button.x,
+                        event.button.y
+                    );
 
                     break;
                 case SDL_MOUSEWHEEL:
+                    application->events.enqueue(EventType::MouseWheelScrolled, event.wheel.y);
 
                     break;
             }

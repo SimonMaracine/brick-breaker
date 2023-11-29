@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include "engine/events.hpp"
+
 namespace bb {
     class Application;
 
@@ -24,6 +26,11 @@ namespace bb {
         const std::string& get_name() const { return name; }
     protected:
         void change_scene(const std::string& scene_name);
+        void quit_application();
+
+        void connect_event(EventType type, const EventSystem::EventCallback& callback);
+        void disconnect_event(EventType type);
+        void disconnect_event();
     private:
         std::string name;
         Application* application {nullptr};

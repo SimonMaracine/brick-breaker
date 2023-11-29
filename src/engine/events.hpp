@@ -5,6 +5,8 @@
 #include <unordered_map>
 #include <functional>
 
+#include "engine/input.hpp"
+
 namespace bb {
     enum class EventType {
         WindowClosed,
@@ -13,33 +15,37 @@ namespace bb {
         MouseMoved,
         MouseButtonPressed,
         MouseButtonReleased,
-        MouseScrolled
+        MouseWheelScrolled
     };
 
     struct WindowClosedEvent {};
 
     struct KeyPressedEvent {
-
+        KeyCode key;
     };
 
     struct KeyReleasedEvent {
-
+        KeyCode key;
     };
 
     struct MouseMovedEvent {
-
+        unsigned char buttons;
+        unsigned short x, y;
+        unsigned short xrel, yrel;
     };
 
     struct MouseButtonPressedEvent {
-
+        unsigned char button;
+        unsigned short x, y;
     };
 
     struct MouseButtonReleasedEvent {
-
+        unsigned char button;
+        unsigned short x, y;
     };
 
-    struct MouseScrolledEvent {
-
+    struct MouseWheelScrolledEvent {
+        int scroll;
     };
 
     struct Event {
@@ -52,12 +58,14 @@ namespace bb {
             MouseMovedEvent mm;
             MouseButtonPressedEvent mbp;
             MouseButtonReleasedEvent mbr;
-            MouseScrolledEvent ms;
+            MouseWheelScrolledEvent mws;
         };
     };
 
     class EventSystem {
     public:
+        using EventCallback = std::function<void(const Event&)>;
+
         template<typename... Args>
         void enqueue(EventType type, Args&&... args) {
             Event event;
@@ -65,7 +73,7 @@ namespace bb {
 
             switch (type) {
                 case EventType::WindowClosed: {
-                    WindowClosedEvent event_type {std::forward<Args>(args)...};
+                    WindowClosedEvent event_type;
                     event.wc = event_type;
 
                     break;
@@ -100,9 +108,9 @@ namespace bb {
 
                     break;
                 }
-                case EventType::MouseScrolled: {
-                    MouseScrolledEvent event_type {std::forward<Args>(args)...};
-                    event.ms = event_type;
+                case EventType::MouseWheelScrolled: {
+                    MouseWheelScrolledEvent event_type {std::forward<Args>(args)...};
+                    event.mws = event_type;
 
                     break;
                 }
@@ -111,12 +119,12 @@ namespace bb {
             events.push_back(event);
         }
 
-        void connect(EventType type, const std::function<void(const Event&)>& callback);
+        void connect(EventType type, const EventCallback& callback);
         void disconnect(EventType type);
         void disconnect();
         void update();
     private:
         std::vector<Event> events;
-        std::unordered_map<EventType, std::function<void(const Event&)>> callbacks;
+        std::unordered_map<EventType, EventCallback> callbacks;
     };
 }

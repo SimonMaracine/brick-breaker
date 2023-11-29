@@ -19,6 +19,8 @@ add_executable(brick-breaker
     "src/engine/engine.hpp"
     "src/engine/events.cpp"
     "src/engine/events.hpp"
+    "src/engine/input.cpp"
+    "src/engine/input.hpp"
     "src/engine/logging.cpp"
     "src/engine/logging.hpp"
     "src/engine/panic.hpp"

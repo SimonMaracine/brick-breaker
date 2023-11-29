@@ -7,6 +7,30 @@ struct MainScene : public bb::Scene {
         : bb::Scene("main") {}
 
     virtual void on_enter() override {
+        connect_event(bb::EventType::KeyPressed, [](const bb::Event& event) {
+            std::cout << "KeyPressed: " << static_cast<int>(event.kp.key) << '\n';
+        });
+
+        connect_event(bb::EventType::KeyReleased, [](const bb::Event& event) {
+            std::cout << "KeyReleased: " << static_cast<int>(event.kr.key) << '\n';
+        });
+
+        connect_event(bb::EventType::MouseMoved, [](const bb::Event& event) {
+            std::cout << "MouseMoved: " << event.mm.x << ", " << event.mm.y << '\n';
+        });
+
+        connect_event(bb::EventType::MouseButtonPressed, [](const bb::Event& event) {
+            std::cout << "MouseButtonPressed: " << static_cast<int>(event.mbp.button) << '\n';
+        });
+
+        connect_event(bb::EventType::MouseButtonReleased, [](const bb::Event& event) {
+            std::cout << "MouseButtonReleased: " << static_cast<int>(event.mbr.button) << '\n';
+        });
+
+        connect_event(bb::EventType::MouseWheelScrolled, [](const bb::Event& event) {
+            std::cout << "MouseWheelScrolled: " << event.mws.scroll << '\n';
+        });
+
         bb::log_message("Entered main scene\n");
     }
 
