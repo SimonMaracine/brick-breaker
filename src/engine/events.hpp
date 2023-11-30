@@ -9,6 +9,11 @@
 namespace bb {
     struct WindowClosedEvent {};
 
+    struct WindowResizedEvent {
+        int width;
+        int height;
+    };
+
     struct KeyPressedEvent {
         KeyCode key;
     };

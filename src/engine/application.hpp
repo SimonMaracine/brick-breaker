@@ -33,6 +33,7 @@ namespace bb {
         void change_scene(const std::string& scene_name);
 
         void on_window_closed(const WindowClosedEvent&);
+        void on_window_resized(const WindowResizedEvent& event);
 
         EventSystem events;
         std::unique_ptr<Window> window;

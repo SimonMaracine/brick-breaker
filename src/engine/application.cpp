@@ -21,6 +21,7 @@ namespace bb {
         );
 
         events.connect<WindowClosedEvent, &Application::on_window_closed>(this);
+        events.connect<WindowResizedEvent, &Application::on_window_resized>(this);
 
         log_message("Initialized application\n");
     }
@@ -90,5 +91,9 @@ namespace bb {
 
     void Application::on_window_closed(const WindowClosedEvent&) {
         running = false;
+    }
+
+    void Application::on_window_resized(const WindowResizedEvent& event) {
+        log_message("WindowResized: %dx%d\n", event.width, event.height);
     }
 }

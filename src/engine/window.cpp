@@ -23,7 +23,7 @@ namespace bb {
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-        unsigned int flags {SDL_WINDOW_OPENGL};
+        unsigned int flags {SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE};
 
         if (fullscreen) {
             flags |= SDL_WINDOW_FULLSCREEN;
@@ -71,7 +71,14 @@ namespace bb {
 
                     break;
                 case SDL_WINDOWEVENT:
-                    // TODO
+                    switch (event.window.event) {
+                        case SDL_WINDOWEVENT_SIZE_CHANGED:
+                            application->events.enqueue<WindowResizedEvent>(event.window.data1, event.window.data2);
+
+                            break;
+                        default:
+                            break;
+                    }
 
                     break;
                 case SDL_KEYDOWN:
