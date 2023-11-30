@@ -7,6 +7,7 @@
 #include "engine/events.hpp"
 #include "engine/window.hpp"
 #include "engine/application_properties.hpp"
+#include "engine/renderer.hpp"
 
 namespace bb {
     class Scene;
@@ -37,6 +38,7 @@ namespace bb {
 
         EventSystem events;
         std::unique_ptr<Window> window;
+        std::unique_ptr<Renderer> renderer;
 
         bool running {true};
 

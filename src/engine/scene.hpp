@@ -27,6 +27,8 @@ namespace bb {
     protected:
         void change_scene(const std::string& scene_name);
         void quit_application();
+        int get_width() const;
+        int get_height() const;
 
         template<typename E, typename... Args>
         void enqueue_event(Args&&... args) {
@@ -34,13 +36,23 @@ namespace bb {
         }
 
         template<typename E, auto F, typename T>
-        void connect_event(T&& instance) {
-            application->events.template connect<E, F>(std::forward<T>(instance));
+        void connect_event(T&& value_or_instance) {
+            application->events.template connect<E, F>(value_or_instance);
+        }
+
+        template<typename E, auto F, typename... T>
+        void disconnect_event(T&&... value_or_instance) {
+            application->events.template disconnect<E, F>(value_or_instance...);
         }
 
         template<typename T>
-        void disconnect_event(T&& instance) {
-            application->events.template disconnect(std::forward<T>(instance));
+        void disconnect_event(T& value_or_instance) {
+            application->events.template disconnect(value_or_instance);
+        }
+
+        template<typename T>
+        void disconnect_event(T* value_or_instance) {
+            application->events.template disconnect(value_or_instance);
         }
     private:
         std::string name;

@@ -20,6 +20,8 @@ namespace bb {
             this
         );
 
+        renderer = std::make_unique<Renderer>(properties.width, properties.height);
+
         events.connect<WindowClosedEvent, &Application::on_window_closed>(this);
         events.connect<WindowResizedEvent, &Application::on_window_resized>(this);
 
@@ -46,7 +48,7 @@ namespace bb {
 
             current_scene->on_update();
 
-            // TODO rendering
+            renderer->render(window->get_width(), window->get_height());
 
             window->refresh();
 
@@ -71,6 +73,7 @@ namespace bb {
     void Application::check_scene_change() {
         if (next_scene != nullptr) {
             current_scene->on_exit();
+            events.disconnect(current_scene);
 
             current_scene = next_scene;
             next_scene = nullptr;

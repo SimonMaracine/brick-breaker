@@ -49,14 +49,24 @@ namespace bb {
             dispatcher.template enqueue<E>(std::forward<Args>(args)...);
         }
 
-        template<typename E, auto F, typename T>
-        void connect(T&& instance) {
-            dispatcher.template sink<E>().template connect<F, T>(std::forward<T>(instance));
+        template<typename E, auto F, typename... T>
+        void connect(T&&... value_or_instance) {
+            dispatcher.template sink<E>().template connect<F>(value_or_instance...);
+        }
+
+        template<typename E, auto F, typename... T>
+        void disconnect(T&&... value_or_instance) {
+            dispatcher.template sink<E>().template disconnect<F>(value_or_instance...);
         }
 
         template<typename T>
-        void disconnect(T&& instance) {
-            dispatcher.disconnect(std::forward<T>(instance));
+        void disconnect(T& value_or_instance) {
+            dispatcher.disconnect(value_or_instance);
+        }
+
+        template<typename T>
+        void disconnect(T* value_or_instance) {
+            dispatcher.disconnect(value_or_instance);
         }
 
         void update() {

@@ -11,7 +11,7 @@
 
 namespace bb {
     Window::Window(int width, int height, const std::string& title, bool fullscreen, Application* application)
-        : application(application) {
+        : width(width), height(height), application(application) {
         if (SDL_Init(SDL_INIT_VIDEO) < 0) {
             log_message("Could not initialize SDL\n");
             throw InitializationError;
@@ -74,6 +74,9 @@ namespace bb {
                     switch (event.window.event) {
                         case SDL_WINDOWEVENT_SIZE_CHANGED:
                             application->events.enqueue<WindowResizedEvent>(event.window.data1, event.window.data2);
+
+                            width = event.window.data1;
+                            height = event.window.data2;
 
                             break;
                         default:

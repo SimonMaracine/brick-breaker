@@ -17,9 +17,15 @@ namespace bb {
         Window(Window&&) = delete;
         Window& operator=(Window&&) = delete;
 
+        int get_width() const { return width; }
+        int get_height() const { return height; }
+
         void poll_events();
         void refresh();
     private:
+        int width {};
+        int height {};
+
         SDL_Window* window {nullptr};
         void* context {nullptr};
         Application* application {nullptr};

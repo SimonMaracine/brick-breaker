@@ -13,4 +13,12 @@ namespace bb {
     void Scene::quit_application() {
         application->running = false;
     }
+
+    int Scene::get_width() const {
+        return application->window->get_width();
+    }
+
+    int Scene::get_height() const {
+        return application->window->get_height();
+    }
 }
