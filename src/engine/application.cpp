@@ -20,9 +20,7 @@ namespace bb {
             this
         );
 
-        events.connect(EventType::WindowClosed, [this](const Event&) {
-            running = false;
-        });
+        events.connect<WindowClosedEvent, &Application::on_window_closed>(this);
 
         log_message("Initialized application\n");
     }
@@ -88,5 +86,9 @@ namespace bb {
         }
 
         assert(next_scene != nullptr);
+    }
+
+    void Application::on_window_closed(const WindowClosedEvent&) {
+        running = false;
     }
 }

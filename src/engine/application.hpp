@@ -7,9 +7,10 @@
 #include "engine/events.hpp"
 #include "engine/window.hpp"
 #include "engine/application_properties.hpp"
-#include "engine/scene.hpp"
 
 namespace bb {
+    class Scene;
+
     class Application final {
     public:
         Application(const ApplicationProperties& properties);
@@ -30,6 +31,8 @@ namespace bb {
         void setup_scenes(const std::string& scene_name);
         void check_scene_change();
         void change_scene(const std::string& scene_name);
+
+        void on_window_closed(const WindowClosedEvent&);
 
         EventSystem events;
         std::unique_ptr<Window> window;

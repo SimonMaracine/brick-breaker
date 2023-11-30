@@ -1,4 +1,5 @@
 #include <string>
+#include <utility>
 
 #include "engine/events.hpp"
 #include "engine/scene.hpp"
@@ -11,17 +12,5 @@ namespace bb {
 
     void Scene::quit_application() {
         application->running = false;
-    }
-
-    void Scene::connect_event(EventType type, const EventSystem::EventCallback& callback) {
-        application->events.connect(type, callback);
-    }
-
-    void Scene::disconnect_event(EventType type) {
-        application->events.disconnect(type);
-    }
-
-    void Scene::disconnect_event() {
-        application->events.disconnect();
     }
 }

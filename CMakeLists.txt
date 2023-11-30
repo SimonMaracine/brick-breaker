@@ -11,13 +11,13 @@ set(SDL_SHARED OFF)
 set(SDL_STATIC ON)
 
 add_subdirectory(extern/SDL EXCLUDE_FROM_ALL)
+add_subdirectory(extern/entt)
 
 add_executable(brick-breaker
     "src/engine/application_properties.hpp"
     "src/engine/application.cpp"
     "src/engine/application.hpp"
     "src/engine/engine.hpp"
-    "src/engine/events.cpp"
     "src/engine/events.hpp"
     "src/engine/input.cpp"
     "src/engine/input.hpp"
@@ -31,7 +31,7 @@ add_executable(brick-breaker
     "src/main.cpp"
 )
 
-target_link_libraries(brick-breaker PRIVATE SDL2::SDL2-static glad)
+target_link_libraries(brick-breaker PRIVATE SDL2::SDL2-static glad EnTT::EnTT)
 
 target_include_directories(brick-breaker PRIVATE "src")
 

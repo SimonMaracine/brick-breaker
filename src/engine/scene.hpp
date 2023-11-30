@@ -1,12 +1,12 @@
 #pragma once
 
 #include <string>
+#include <utility>
 
+#include "engine/application.hpp"
 #include "engine/events.hpp"
 
 namespace bb {
-    class Application;
-
     class Scene {
     public:
         Scene(const std::string& name)
@@ -28,9 +28,20 @@ namespace bb {
         void change_scene(const std::string& scene_name);
         void quit_application();
 
-        void connect_event(EventType type, const EventSystem::EventCallback& callback);
-        void disconnect_event(EventType type);
-        void disconnect_event();
+        template<typename E, typename... Args>
+        void enqueue_event(Args&&... args) {
+            application->events.template enqueue<E>(std::forward<Args>(args)...);
+        }
+
+        template<typename E, auto F, typename T>
+        void connect_event(T&& instance) {
+            application->events.template connect<E, F>(std::forward<T>(instance));
+        }
+
+        template<typename T>
+        void disconnect_event(T&& instance) {
+            application->events.template disconnect(std::forward<T>(instance));
+        }
     private:
         std::string name;
         Application* application {nullptr};

@@ -2,3 +2,6 @@
 	path = extern/SDL
 	url = https://github.com/libsdl-org/SDL
 	branch = SDL2
+[submodule "extern/entt"]
+	path = extern/entt
+	url = https://github.com/skypjack/entt

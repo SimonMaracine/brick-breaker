@@ -9,6 +9,14 @@
 
 namespace bb {
     enum class MouseButton : unsigned char {
+        LEFT = 1,
+        MIDDLE = 2,
+        RIGHT = 3,
+        X1 = 4,
+        X2 = 5
+    };
+
+    enum MouseButtons : unsigned int {
         MB_LEFT = BB_INTERNAL_BUTTON(1),
         MB_MIDDLE = BB_INTERNAL_BUTTON(2),
         MB_RIGHT = BB_INTERNAL_BUTTON(3),

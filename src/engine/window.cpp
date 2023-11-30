@@ -67,7 +67,7 @@ namespace bb {
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
                 case SDL_QUIT:
-                    application->events.enqueue(EventType::WindowClosed);
+                    application->events.enqueue<WindowClosedEvent>();
 
                     break;
                 case SDL_WINDOWEVENT:
@@ -75,16 +75,15 @@ namespace bb {
 
                     break;
                 case SDL_KEYDOWN:
-                    application->events.enqueue(EventType::KeyPressed, static_cast<KeyCode>(event.key.keysym.sym));
+                    application->events.enqueue<KeyPressedEvent>(static_cast<KeyCode>(event.key.keysym.sym));
 
                     break;
                 case SDL_KEYUP:
-                    application->events.enqueue(EventType::KeyReleased, static_cast<KeyCode>(event.key.keysym.sym));
+                    application->events.enqueue<KeyReleasedEvent>(static_cast<KeyCode>(event.key.keysym.sym));
 
                     break;
                 case SDL_MOUSEMOTION:
-                    application->events.enqueue(
-                        EventType::MouseMoved,
+                    application->events.enqueue<MouseMovedEvent>(
                         event.motion.state,
                         event.motion.x,
                         event.motion.y,
@@ -94,8 +93,7 @@ namespace bb {
 
                     break;
                 case SDL_MOUSEBUTTONDOWN:
-                    application->events.enqueue(
-                        EventType::MouseButtonPressed,
+                    application->events.enqueue<MouseButtonPressedEvent>(
                         event.button.button,
                         event.button.x,
                         event.button.y
@@ -103,8 +101,7 @@ namespace bb {
 
                     break;
                 case SDL_MOUSEBUTTONUP:
-                    application->events.enqueue(
-                        EventType::MouseButtonReleased,
+                    application->events.enqueue<MouseButtonReleasedEvent>(
                         event.button.button,
                         event.button.x,
                         event.button.y
@@ -112,7 +109,7 @@ namespace bb {
 
                     break;
                 case SDL_MOUSEWHEEL:
-                    application->events.enqueue(EventType::MouseWheelScrolled, event.wheel.y);
+                    application->events.enqueue<MouseWheelScrolledEvent>(event.wheel.y);
 
                     break;
             }
