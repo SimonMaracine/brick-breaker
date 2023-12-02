@@ -5,3 +5,10 @@
 [submodule "extern/entt"]
 	path = extern/entt
 	url = https://github.com/skypjack/entt
+[submodule "extern/glm"]
+	path = extern/glm
+	url = https://github.com/g-truc/glm
+[submodule "extern/SDL_image"]
+	path = extern/SDL_image
+	url = https://github.com/libsdl-org/SDL_image
+	branch = SDL2

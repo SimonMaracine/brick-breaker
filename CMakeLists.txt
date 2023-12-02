@@ -12,26 +12,41 @@ set(SDL_STATIC ON)
 
 add_subdirectory(extern/SDL EXCLUDE_FROM_ALL)
 add_subdirectory(extern/entt)
+add_subdirectory(extern/glm)
 
 add_executable(brick-breaker
     "src/engine/application_properties.hpp"
     "src/engine/application.cpp"
     "src/engine/application.hpp"
+    "src/engine/buffer.cpp"
+    "src/engine/buffer.hpp"
     "src/engine/engine.hpp"
     "src/engine/events.hpp"
+    "src/engine/framebuffer.cpp"
+    "src/engine/framebuffer.hpp"
     "src/engine/input.cpp"
     "src/engine/input.hpp"
     "src/engine/logging.cpp"
     "src/engine/logging.hpp"
     "src/engine/panic.hpp"
+    "src/engine/renderer.cpp"
+    "src/engine/renderer.hpp"
     "src/engine/scene.cpp"
     "src/engine/scene.hpp"
+    "src/engine/shader.cpp"
+    "src/engine/shader.hpp"
+    "src/engine/texture.cpp"
+    "src/engine/texture.hpp"
+    "src/engine/vertex_array.cpp"
+    "src/engine/vertex_array.hpp"
+    "src/engine/vertex_buffer_layout.cpp"
+    "src/engine/vertex_buffer_layout.hpp"
     "src/engine/window.cpp"
     "src/engine/window.hpp"
     "src/main.cpp"
 )
 
-target_link_libraries(brick-breaker PRIVATE SDL2::SDL2-static glad EnTT::EnTT)
+target_link_libraries(brick-breaker PRIVATE SDL2::SDL2-static glad EnTT::EnTT glm::glm)
 
 target_include_directories(brick-breaker PRIVATE "src")
 
