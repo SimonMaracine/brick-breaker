@@ -7,6 +7,8 @@
 
 #include <glm/glm.hpp>
 
+#include "engine/texture_data.hpp"
+
 namespace bb {
     enum class Filter {
         Linear,
@@ -38,7 +40,6 @@ namespace bb {
         // Mipmapping is off by default
         int mipmap_levels {1};
         float bias {0.0f};
-        int anisotropic_filtering {0};
     };
 
     class Texture {

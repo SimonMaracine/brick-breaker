@@ -38,7 +38,7 @@ namespace bb {
         unbind();
 
         // Unbind index buffer after vertex array
-        GlIndexBuffer::unbind();
+        IndexBuffer::unbind();
     }
 
     void VertexArray::add_vertex_buffer(std::shared_ptr<VertexBuffer> buffer, const VertexBufferLayout& layout) {

@@ -10,9 +10,11 @@ set(BUILD_SHARED_LIBS OFF)
 set(SDL_SHARED OFF)
 set(SDL_STATIC ON)
 
-add_subdirectory(extern/SDL EXCLUDE_FROM_ALL)
+add_subdirectory(extern/SDL)
 add_subdirectory(extern/entt)
 add_subdirectory(extern/glm)
+add_subdirectory(extern/SDL_image)
+add_subdirectory(extern/resmanager)
 
 add_executable(brick-breaker
     "src/engine/application_properties.hpp"
@@ -24,6 +26,8 @@ add_executable(brick-breaker
     "src/engine/events.hpp"
     "src/engine/framebuffer.cpp"
     "src/engine/framebuffer.hpp"
+    "src/engine/info_and_debug.cpp"
+    "src/engine/info_and_debug.hpp"
     "src/engine/input.cpp"
     "src/engine/input.hpp"
     "src/engine/logging.cpp"
@@ -35,6 +39,8 @@ add_executable(brick-breaker
     "src/engine/scene.hpp"
     "src/engine/shader.cpp"
     "src/engine/shader.hpp"
+    "src/engine/texture_data.cpp"
+    "src/engine/texture_data.hpp"
     "src/engine/texture.cpp"
     "src/engine/texture.hpp"
     "src/engine/vertex_array.cpp"
@@ -46,7 +52,14 @@ add_executable(brick-breaker
     "src/main.cpp"
 )
 
-target_link_libraries(brick-breaker PRIVATE SDL2::SDL2-static glad EnTT::EnTT glm::glm)
+target_link_libraries(brick-breaker PRIVATE
+    SDL2::SDL2-static
+    glad
+    EnTT::EnTT
+    glm::glm
+    SDL2_image::SDL2_image-static
+    resmanager
+)
 
 target_include_directories(brick-breaker PRIVATE "src")
 

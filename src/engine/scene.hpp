@@ -35,9 +35,9 @@ namespace bb {
             application->events.template enqueue<E>(std::forward<Args>(args)...);
         }
 
-        template<typename E, auto F, typename T>
-        void connect_event(T&& value_or_instance) {
-            application->events.template connect<E, F>(value_or_instance);
+        template<typename E, auto F, typename... T>
+        void connect_event(T&&... value_or_instance) {
+            application->events.template connect<E, F>(value_or_instance...);
         }
 
         template<typename E, auto F, typename... T>

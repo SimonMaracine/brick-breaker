@@ -3,6 +3,7 @@
 namespace bb {
     enum RuntimeError {
         InitializationError,
-        ResourceLoadingError
+        ResourceLoadingError,
+        OtherError
     };
 }

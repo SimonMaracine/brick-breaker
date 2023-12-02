@@ -7,15 +7,15 @@
 #include <cstring>
 #include <cassert>
 
-#include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glad/glad.h>
+#include <SDL_image.h>
 
+#include "engine/texture_data.hpp"
 #include "engine/texture.hpp"
 #include "engine/panic.hpp"
 #include "engine/logging.hpp"
-// #include "engine/application_base/capabilities.hpp"
-// #include "engine/graphics/texture_data.hpp"
 
 namespace bb {
     static constexpr int CHANNELS {4};
@@ -29,20 +29,8 @@ namespace bb {
             return;
         }
 
-        const bool anisotropic_filtering_enabled {specification.anisotropic_filtering > 0};
-
-        const float bias {anisotropic_filtering_enabled ? 0.0f : specification.bias};
-
         glGenerateMipmap(GL_TEXTURE_2D);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, bias);
-
-        if (anisotropic_filtering_enabled) {
-            assert(specification.anisotropic_filtering <= max_anisotropic_filtering_supported());
-
-            const float amount {static_cast<float>(specification.anisotropic_filtering)};
-
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, amount);
-        }
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, specification.bias);
     }
 
     static int filter_to_int(Filter filter) {
@@ -104,13 +92,14 @@ namespace bb {
 
     Texture::Texture(const std::string& file_path, const TextureSpecification& specification)
         : specification(specification) {
-        stbi_set_flip_vertically_on_load(1);
+        // stbi_set_flip_vertically_on_load(1);
 
         int width, height, channels;
-        unsigned char* data {stbi_load(file_path.c_str(), &width, &height, &channels, CHANNELS)};
+        unsigned char* data; //{stbi_load(file_path.c_str(), &width, &height, &channels, CHANNELS)};
+        // FIXME
 
         if (data == nullptr) {
-            log_message("Could not load texture `%s`", file_path.c_str());
+            log_message("Could not load texture `%s`\n", file_path.c_str());
             throw ResourceLoadingError;
         }
 
@@ -122,7 +111,7 @@ namespace bb {
         configure_mipmapping(specification);
 
         glBindTexture(GL_TEXTURE_2D, 0);
-        stbi_image_free(data);
+        // stbi_image_free(data);
 
         this->width = width;
         this->height = height;
@@ -130,7 +119,7 @@ namespace bb {
 
     Texture::Texture(std::shared_ptr<TextureData> data, const TextureSpecification& specification)
         : specification(specification) {
-        (data->data != nullptr);
+        assert(data->data != nullptr);
 
         glGenTextures(1, &texture);
         glBindTexture(GL_TEXTURE_2D, texture);
@@ -196,16 +185,17 @@ namespace bb {
 
         configure_filter_and_wrap_3d();
 
-        stbi_set_flip_vertically_on_load(0);
+        // stbi_set_flip_vertically_on_load(0);
 
         int width, height, channels;
         unsigned char* data[6];
 
         for (std::size_t i {0}; i < 6; i++) {
-            data[i] = stbi_load(file_paths[i], &width, &height, &channels, CHANNELS);
+            // data[i] = stbi_load(file_paths[i], &width, &height, &channels, CHANNELS);
+            // FIXME
 
             if (data[i] == nullptr) {
-                log_message("Could not load texture `%s`", file_paths[i]);
+                log_message("Could not load texture `%s`\n", file_paths[i]);
                 throw ResourceLoadingError;
             }
         }
@@ -218,7 +208,7 @@ namespace bb {
                 GL_RGBA, GL_UNSIGNED_BYTE, data[i]
             );
 
-            stbi_image_free(data[i]);
+            // stbi_image_free(data[i]);
         }
 
         glBindTexture(GL_TEXTURE_CUBE_MAP, 0);

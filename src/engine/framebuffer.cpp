@@ -1,13 +1,13 @@
 #include <vector>
+#include <cassert>
 
 #include <glad/glad.h>
 
-#include "engine/application_base/panic.hpp"
-#include "engine/graphics/opengl/framebuffer.hpp"
-#include "engine/other/logging.hpp"
-#include "engine/other/assert.hpp"
+#include "engine/panic.hpp"
+#include "engine/framebuffer.hpp"
+#include "engine/logging.hpp"
 
-namespace sm {
+namespace bb {
     static const GLenum COLOR_ATTACHMENTS[4] {
         GL_COLOR_ATTACHMENT0,
         GL_COLOR_ATTACHMENT1,
@@ -133,7 +133,7 @@ namespace sm {
                 message = "GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS";
                 break;
             case GL_FRAMEBUFFER_COMPLETE:
-                SM_ASSERT(false, "Don't call this function, if the status is GL_FRAMEBUFFER_COMPLETE");
+                assert(false);
                 break;
             default:
                 break;
@@ -142,39 +142,31 @@ namespace sm {
         return message;
     }
 
-    GlFramebuffer::GlFramebuffer(const FramebufferSpecification& specification)
+    Framebuffer::Framebuffer(const FramebufferSpecification& specification)
         : specification(specification) {
-        SM_ASSERT(
-            specification.samples == 1 || specification.samples == 2 || specification.samples == 4,
-            "Invalid sample size"
-        );
+        assert(specification.samples == 1 || specification.samples == 2 || specification.samples == 4);
 
         if (specification.white_border_for_depth_texture) {
-            SM_ASSERT(specification.depth_attachment.format != AttachmentFormat::None, "Invalid configuration");
-            SM_ASSERT(specification.depth_attachment.type == AttachmentType::Texture, "Invalid configuration");
+            assert(specification.depth_attachment.format != AttachmentFormat::None);
+            assert(specification.depth_attachment.type == AttachmentType::Texture);
         }
 
-        SM_ASSERT(specification.width > 0 && specification.height > 0, "Invalid size");
+        assert(specification.width > 0 && specification.height > 0);
 
-        SM_ASSERT(specification.clear_drawbuffer >= 0, "Invalid drawbuffer to clear");
+        assert(specification.clear_drawbuffer >= 0);
 
         if (!specification.color_attachments.empty()) {
-            SM_ASSERT(
-                static_cast<std::size_t>(specification.clear_drawbuffer) < specification.color_attachments.size(),
-                "Invalid drawbuffer to clear"
-            );
+            assert(static_cast<std::size_t>(specification.clear_drawbuffer) < specification.color_attachments.size());
         }
 
         build();
-
-        LOG_DEBUG("Created GL framebuffer {}", framebuffer);
     }
 
-    GlFramebuffer::~GlFramebuffer() {
+    Framebuffer::~Framebuffer() {
         for (std::size_t i {0}; i < specification.color_attachments.size(); i++) {
             switch (specification.color_attachments[i].type) {
                 case AttachmentType::None:
-                    SM_ASSERT(false, "Attachment type None is invalid");
+                    assert(false);
                     break;
                 case AttachmentType::Texture:
                     glDeleteTextures(1, &color_attachments[i]);
@@ -188,7 +180,7 @@ namespace sm {
         if (depth_attachment_present(specification)) {
             switch (specification.depth_attachment.type) {
                 case AttachmentType::None:
-                    SM_ASSERT(false, "Attachment type None is invalid");
+                    assert(false);
                     break;
                 case AttachmentType::Texture:
                     glDeleteTextures(1, &depth_attachment);
@@ -200,31 +192,29 @@ namespace sm {
         }
 
         glDeleteFramebuffers(1, &framebuffer);
-
-        LOG_DEBUG("Deleted GL framebuffer {}", framebuffer);
     }
 
-    void GlFramebuffer::bind() const {
+    void Framebuffer::bind() const {
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
     }
 
-    void GlFramebuffer::bind_default() {
+    void Framebuffer::bind_default() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    unsigned int GlFramebuffer::get_color_attachment(int attachment_index) const {
-        SM_ASSERT(static_cast<std::size_t>(attachment_index) < color_attachments.size(), "Invalid color attachment");
+    unsigned int Framebuffer::get_color_attachment(int attachment_index) const {
+        assert(static_cast<std::size_t>(attachment_index) < color_attachments.size());
 
         return color_attachments[attachment_index];
     }
 
-    unsigned int GlFramebuffer::get_depth_attachment() const {
+    unsigned int Framebuffer::get_depth_attachment() const {
         return depth_attachment;
     }
 
-    void GlFramebuffer::resize(int width, int height) {
+    void Framebuffer::resize(int width, int height) {
         if (width < 1 || height < 1 || width > 8192 || height > 8192) {
-            LOG_DIST_ERROR("Attempted to resize framebuffer to [{}, {}]", width, height);
+            log_message("Attempted to resize framebuffer to [%d, %d]\n", width, height);
             return;
         }
 
@@ -234,8 +224,8 @@ namespace sm {
         build();
     }
 
-    float GlFramebuffer::read_pixel_float(int attachment_index, int x, int y) const {
-        SM_ASSERT(static_cast<std::size_t>(attachment_index) < color_attachments.size(), "Invalid color attachment");
+    float Framebuffer::read_pixel_float(int attachment_index, int x, int y) const {
+        assert(static_cast<std::size_t>(attachment_index) < color_attachments.size());
 
         glReadBuffer(GL_COLOR_ATTACHMENT0 + attachment_index);
         float pixel;
@@ -244,22 +234,19 @@ namespace sm {
         return pixel;
     }
 
-    void GlFramebuffer::read_pixel_float_pbo(int attachment_index, int x, int y) const {
-        SM_ASSERT(static_cast<std::size_t>(attachment_index) < color_attachments.size(), "Invalid color attachment");
+    void Framebuffer::read_pixel_float_pbo(int attachment_index, int x, int y) const {
+        assert(static_cast<std::size_t>(attachment_index) < color_attachments.size());
 
         glReadBuffer(GL_COLOR_ATTACHMENT0 + attachment_index);
         glReadPixels(x, y, 1, 1, GL_RED, GL_FLOAT, nullptr);
     }
 
-    void GlFramebuffer::clear_color_attachment_float() const {  // TODO right now not used
+    void Framebuffer::clear_color_attachment_float() const {
         glClearBufferfv(GL_COLOR, specification.clear_drawbuffer, specification.color_clear_value);
     }
 
-    void GlFramebuffer::blit(const GlFramebuffer* draw_framebuffer, int width, int height) const {
-        SM_ASSERT(
-            color_attachments.size() == draw_framebuffer->color_attachments.size(),
-            "Framebuffers must have the same attachments"
-        );
+    void Framebuffer::blit(const Framebuffer* draw_framebuffer, int width, int height) const {
+        assert(color_attachments.size() == draw_framebuffer->color_attachments.size());
 
         glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, draw_framebuffer->framebuffer);
@@ -273,13 +260,13 @@ namespace sm {
         glDrawBuffers(draw_framebuffer->color_attachments.size(), COLOR_ATTACHMENTS);
     }
 
-    void GlFramebuffer::build() {
+    void Framebuffer::build() {
         // Delete old framebuffer first
         if (framebuffer != 0) {
             for (std::size_t i {0}; i < specification.color_attachments.size(); i++) {
                 switch (specification.color_attachments[i].type) {
                     case AttachmentType::None:
-                        SM_ASSERT(false, "Attachment type None is invalid");
+                        assert(false);
                         break;
                     case AttachmentType::Texture:
                         glDeleteTextures(1, &color_attachments[i]);
@@ -293,7 +280,7 @@ namespace sm {
             if (depth_attachment_present(specification)) {
                 switch (specification.depth_attachment.type) {
                     case AttachmentType::None:
-                        SM_ASSERT(false, "Attachment type None is invalid");
+                        assert(false);
                         break;
                     case AttachmentType::Texture:
                         glDeleteTextures(1, &depth_attachment);
@@ -321,7 +308,7 @@ namespace sm {
         for (std::size_t i {0}; i < specification.color_attachments.size(); i++) {
             switch (specification.color_attachments[i].type) {
                 case AttachmentType::None:
-                    SM_ASSERT(false, "Attachment type None is invalid");
+                    assert(false);
 
                     break;
                 case AttachmentType::Texture: {
@@ -331,7 +318,7 @@ namespace sm {
 
                     switch (specification.color_attachments[i].format) {
                         case AttachmentFormat::None:
-                            SM_ASSERT(false, "Attachment format None is invalid");
+                            assert(false);
                             break;
                         case AttachmentFormat::Rgba8:
                             attach_color_texture(
@@ -352,7 +339,7 @@ namespace sm {
                             );
                             break;
                         default:
-                            SM_ASSERT(false, "Wrong attachment format");
+                            assert(false);
                             break;
                     }
 
@@ -368,7 +355,7 @@ namespace sm {
 
                     switch (specification.color_attachments[i].format) {
                         case AttachmentFormat::None:
-                            SM_ASSERT(false, "Attachment format None is invalid");
+                            assert(false);
                             break;
                         case AttachmentFormat::Rgba8:
                             attach_color_renderbuffer(
@@ -389,7 +376,7 @@ namespace sm {
                             );
                             break;
                         default:
-                            SM_ASSERT(false, "Wrong attachment format");
+                            assert(false);
                             break;
                     }
 
@@ -404,7 +391,7 @@ namespace sm {
         if (depth_attachment_present(specification)) {
             switch (specification.depth_attachment.type) {
                 case AttachmentType::None:
-                    SM_ASSERT(false, "Attachment type None is invalid");
+                    assert(false);
 
                     break;
                 case AttachmentType::Texture: {
@@ -414,7 +401,7 @@ namespace sm {
 
                     switch (specification.depth_attachment.format) {
                         case AttachmentFormat::None:
-                            SM_ASSERT(false, "Attachment format None is invalid");
+                            assert(false);
                             break;
                         case AttachmentFormat::Depth24Stencil8:
                             attach_depth_texture(
@@ -431,7 +418,7 @@ namespace sm {
                             );
                             break;
                         default:
-                            SM_ASSERT(false, "Wrong attachment format");
+                            assert(false);
                             break;
                     }
 
@@ -447,7 +434,7 @@ namespace sm {
 
                     switch (specification.depth_attachment.format) {
                         case AttachmentFormat::None:
-                            SM_ASSERT(false, "Attachment format None is invalid");
+                            assert(false);
                             break;
                         case AttachmentFormat::Depth24Stencil8:
                             attach_depth_renderbuffer(
@@ -464,7 +451,7 @@ namespace sm {
                             );
                             break;
                         default:
-                            SM_ASSERT(false, "Wrong attachment format");
+                            assert(false);
                             break;
                     }
 
@@ -477,19 +464,19 @@ namespace sm {
         }
 
         if (color_attachments.size() > 1) {
-            SM_ASSERT(color_attachments.size() <= 4, "Currently there can be maximum 4 color attachments");
+            assert(color_attachments.size() <= 4);
 
             glDrawBuffers(color_attachments.size(), COLOR_ATTACHMENTS);
         } else if (color_attachments.empty()) {
-            glDrawBuffer(GL_NONE);  // TODO what is this?
+            glDrawBuffer(GL_NONE);
             glReadBuffer(GL_NONE);
         }
 
         const GLenum status {glCheckFramebufferStatus(GL_FRAMEBUFFER)};
 
         if (status != GL_FRAMEBUFFER_COMPLETE) {
-            LOG_DIST_CRITICAL("GL framebuffer {} is incomplete", framebuffer);
-            LOG_DIST_CRITICAL("Status: {}", print_framebuffer_status_message(status));
+            log_message("GL framebuffer %d is incomplete\n", framebuffer);
+            log_message("Status: %s\n", print_framebuffer_status_message(status));
             throw OtherError;
         }
 

@@ -2,7 +2,7 @@
 
 #include <vector>
 
-namespace sm {
+namespace bb {
     enum class AttachmentFormat {
         None,
         Rgba8,
@@ -46,15 +46,15 @@ namespace sm {
         float color_clear_value[4] {};
     };
 
-    class GlFramebuffer {
+    class Framebuffer {
     public:
-        GlFramebuffer(const FramebufferSpecification& specification);
-        ~GlFramebuffer();
+        Framebuffer(const FramebufferSpecification& specification);
+        ~Framebuffer();
 
-        GlFramebuffer(const GlFramebuffer&) = delete;
-        GlFramebuffer& operator=(const GlFramebuffer&) = delete;
-        GlFramebuffer(GlFramebuffer&&) = delete;
-        GlFramebuffer& operator=(GlFramebuffer&&) = delete;
+        Framebuffer(const Framebuffer&) = delete;
+        Framebuffer& operator=(const Framebuffer&) = delete;
+        Framebuffer(Framebuffer&&) = delete;
+        Framebuffer& operator=(Framebuffer&&) = delete;
 
         void bind() const;
         static void bind_default();
@@ -74,7 +74,7 @@ namespace sm {
         void clear_color_attachment_float() const;  // TODO should be generic
 
         // Resolve this to draw_framebuffer
-        void blit(const GlFramebuffer* draw_framebuffer, int width, int height) const;
+        void blit(const Framebuffer* draw_framebuffer, int width, int height) const;
     private:
         void build();
 
