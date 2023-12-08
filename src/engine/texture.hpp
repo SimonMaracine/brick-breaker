@@ -61,7 +61,7 @@ namespace bb {
         void bind(unsigned int unit) const;
         static void unbind();
     private:
-        void allocate_texture(int width, int height, unsigned char* data) const;
+        void allocate_texture(int width, int height, const unsigned char* data) const;
 
         TextureSpecification specification;
 

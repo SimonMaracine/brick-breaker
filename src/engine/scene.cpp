@@ -21,4 +21,12 @@ namespace bb {
     int Scene::get_height() const {
         return application->window->get_height();
     }
+
+    float Scene::get_delta() const {
+        return application->dt;
+    }
+
+    double Scene::get_fps() const {
+        return application->fps;
+    }
 }

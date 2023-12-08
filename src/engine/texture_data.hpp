@@ -2,6 +2,8 @@
 
 #include <string>
 
+struct SDL_Surface;
+
 namespace bb {
     class Texture;
     class TextureCubemap;
@@ -16,9 +18,9 @@ namespace bb {
         TextureData(TextureData&&) = delete;
         TextureData& operator=(TextureData&&) = delete;
 
-        const unsigned char* get_data() const { return data; }
+        const unsigned char* get_data() const;
     private:
-        unsigned char* data {nullptr};
+        SDL_Surface* surface {nullptr};
         int width {};
         int height {};
 

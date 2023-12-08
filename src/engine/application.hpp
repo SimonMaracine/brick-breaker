@@ -32,6 +32,7 @@ namespace bb {
         void setup_scenes(const std::string& scene_name);
         void check_scene_change();
         void change_scene(const std::string& scene_name);
+        float calculate_delta();
 
         void on_window_closed(const WindowClosedEvent&);
         void on_window_resized(const WindowResizedEvent& event);
@@ -41,6 +42,8 @@ namespace bb {
         std::unique_ptr<Renderer> renderer;
 
         bool running {true};
+        float dt {0.0f};
+        double fps {0.0};
 
         std::vector<Scene*> scenes;
         Scene* current_scene {nullptr};

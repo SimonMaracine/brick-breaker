@@ -18,8 +18,6 @@
 #include "engine/logging.hpp"
 
 namespace bb {
-    static constexpr int CHANNELS {4};
-
     static bool use_mipmapping(const TextureSpecification& specification) {
         return specification.mipmap_levels > 1;
     }
@@ -92,40 +90,37 @@ namespace bb {
 
     Texture::Texture(const std::string& file_path, const TextureSpecification& specification)
         : specification(specification) {
-        // stbi_set_flip_vertically_on_load(1);
 
-        int width, height, channels;
-        unsigned char* data; //{stbi_load(file_path.c_str(), &width, &height, &channels, CHANNELS)};
-        // FIXME
+        SDL_Surface* surface {IMG_Load(file_path.c_str())};
 
-        if (data == nullptr) {
+        if (surface == nullptr) {
             log_message("Could not load texture `%s`\n", file_path.c_str());
             throw ResourceLoadingError;
         }
 
+        width = surface->w;
+        height = surface->h;
+
         glGenTextures(1, &texture);
         glBindTexture(GL_TEXTURE_2D, texture);
 
         configure_filter_and_wrap(specification);
-        allocate_texture(width, height, data);
+        allocate_texture(width, height, static_cast<unsigned char*>(surface->pixels));
         configure_mipmapping(specification);
 
         glBindTexture(GL_TEXTURE_2D, 0);
-        // stbi_image_free(data);
-
-        this->width = width;
-        this->height = height;
+        SDL_FreeSurface(surface);
     }
 
     Texture::Texture(std::shared_ptr<TextureData> data, const TextureSpecification& specification)
         : specification(specification) {
-        assert(data->data != nullptr);
+        assert(data->get_data() != nullptr);
 
         glGenTextures(1, &texture);
         glBindTexture(GL_TEXTURE_2D, texture);
 
         configure_filter_and_wrap(specification);
-        allocate_texture(data->width, data->height, data->data);
+        allocate_texture(data->width, data->height, data->get_data());
         configure_mipmapping(specification);
 
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -164,7 +159,7 @@ namespace bb {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-    void Texture::allocate_texture(int width, int height, unsigned char* data) const {
+    void Texture::allocate_texture(int width, int height, const unsigned char* data) const {
         switch (specification.format) {
             case Format::Rgba8:
                 glTexStorage2D(GL_TEXTURE_2D, specification.mipmap_levels, GL_RGBA8, width, height);
@@ -185,19 +180,21 @@ namespace bb {
 
         configure_filter_and_wrap_3d();
 
-        // stbi_set_flip_vertically_on_load(0);
-
-        int width, height, channels;
-        unsigned char* data[6];
+        int width, height;
+        SDL_Surface* data[6];
 
         for (std::size_t i {0}; i < 6; i++) {
-            // data[i] = stbi_load(file_paths[i], &width, &height, &channels, CHANNELS);
-            // FIXME
+            SDL_Surface* surface {IMG_Load(file_paths[i])};
 
-            if (data[i] == nullptr) {
+            if (surface == nullptr) {
                 log_message("Could not load texture `%s`\n", file_paths[i]);
                 throw ResourceLoadingError;
             }
+
+            width = surface->w;
+            height = surface->h;
+
+            data[i] = surface;
         }
 
         glTexStorage2D(GL_TEXTURE_CUBE_MAP, 1, GL_RGBA8, width, height);
@@ -205,10 +202,10 @@ namespace bb {
         for (std::size_t i {0}; i < 6; i++) {
             glTexSubImage2D(
                 GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, 0, 0, width, height,
-                GL_RGBA, GL_UNSIGNED_BYTE, data[i]
+                GL_RGBA, GL_UNSIGNED_BYTE, data[i]->pixels
             );
 
-            // stbi_image_free(data[i]);
+            SDL_FreeSurface(data[i]);
         }
 
         glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
@@ -225,7 +222,7 @@ namespace bb {
         for (std::size_t i {0}; i < 6; i++) {
             glTexSubImage2D(
                 GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, 0, 0, data[i]->width, data[i]->height,
-                GL_RGBA, GL_UNSIGNED_BYTE, data[i]->data
+                GL_RGBA, GL_UNSIGNED_BYTE, data[i]->get_data()
             );
         }
 

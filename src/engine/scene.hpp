@@ -29,6 +29,8 @@ namespace bb {
         void quit_application();
         int get_width() const;
         int get_height() const;
+        float get_delta() const;
+        double get_fps() const;
 
         template<typename E, typename... Args>
         void enqueue_event(Args&&... args) {

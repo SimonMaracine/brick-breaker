@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <cassert>
+#include <algorithm>
 
 #include "engine/events.hpp"
 #include "engine/window.hpp"
@@ -43,6 +44,8 @@ namespace bb {
         current_scene->on_enter();
 
         while (running) {
+            dt = calculate_delta();
+
             window->poll_events();
             events.update();
 
@@ -90,6 +93,31 @@ namespace bb {
         }
 
         assert(next_scene != nullptr);
+    }
+
+    float Application::calculate_delta() {
+        static constexpr double MAX_DT {1.0 / 20.0};
+
+        static double previous_seconds {Window::get_time()};
+        static double total_time {0.0};
+        static int frame_count {0};
+
+        const double current_seconds {Window::get_time()};
+        const double elapsed_seconds {current_seconds - previous_seconds};
+        previous_seconds = current_seconds;
+
+        total_time += elapsed_seconds;
+
+        if (total_time > 0.25) {
+            fps = static_cast<double>(frame_count) / total_time;
+            frame_count = 0;
+            total_time = 0.0;
+        }
+        frame_count++;
+
+        const double delta_time {std::min(elapsed_seconds, MAX_DT)};
+
+        return static_cast<float>(delta_time);
     }
 
     void Application::on_window_closed(const WindowClosedEvent&) {

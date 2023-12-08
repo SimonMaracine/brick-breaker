@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "engine/engine.hpp"
 
 struct MainScene : public bb::Scene {
@@ -22,31 +20,31 @@ struct MainScene : public bb::Scene {
     }
 
     virtual void on_update() override {
-
+        bb::log_message("%f - %f\n", get_delta(), get_fps());  // FIXME these don't seem accurate
     }
 
     void on_key_pressed(const bb::KeyPressedEvent& event) {
-        std::cout << "KeyPressed: " << static_cast<int>(event.key) << '\n';
+        bb::log_message("KeyPressed: %d\n", static_cast<int>(event.key));
     }
 
     void on_key_released(const bb::KeyReleasedEvent& event) {
-        std::cout << "KeyReleased: " << static_cast<int>(event.key) << '\n';
+        bb::log_message("KeyReleased: %d\n", static_cast<int>(event.key));
     }
 
     void on_mouse_moved(const bb::MouseMovedEvent& event) {
-        std::cout << "MouseMoved: " << event.x << ", " << event.y << '\n';
+        bb::log_message("MouseMoved: %dx%d\n", event.x, event.y);
     }
 
     void on_mouse_button_pressed(const bb::MouseButtonPressedEvent& event) {
-        std::cout << "MouseButtonPressed: " << static_cast<int>(event.button) << '\n';
+        bb::log_message("MouseButtonPressed: %d\n", static_cast<int>(event.button));
     }
 
     void on_mouse_button_released(const bb::MouseButtonReleasedEvent& event) {
-        std::cout << "MouseButtonReleased: " << static_cast<int>(event.button) << '\n';
+        bb::log_message("MouseButtonReleased: %d\n", static_cast<int>(event.button));
     }
 
     void on_mouse_wheel_scrolled(const bb::MouseWheelScrolledEvent& event) {
-        std::cout << "MouseWheelScrolled: " << event.scroll << '\n';
+        bb::log_message("MouseWheelScrolled: %d\n", event.scroll);
     }
 };
 
@@ -58,7 +56,7 @@ int main() {
         application.add_scene<MainScene>();
         application.run("main");
     } catch (bb::RuntimeError error) {
-        std::cout << "An error occurred: " << error << '\n';
+        bb::log_message("An error occurred: %d\n", error);
         return 1;
     }
 

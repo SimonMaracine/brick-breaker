@@ -126,7 +126,11 @@ namespace bb {
         }
     }
 
-    void Window::refresh() {
+    void Window::refresh() const {
         SDL_GL_SwapWindow(window);
+    }
+
+    double Window::get_time() {
+        return static_cast<double>(SDL_GetTicks64()) / 1000.0;
     }
 }

@@ -21,7 +21,8 @@ namespace bb {
         int get_height() const { return height; }
 
         void poll_events();
-        void refresh();
+        void refresh() const;
+        static double get_time();  // In seconds
     private:
         int width {};
         int height {};
