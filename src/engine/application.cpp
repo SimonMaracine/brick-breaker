@@ -9,6 +9,7 @@
 #include "engine/application_properties.hpp"
 #include "engine/scene.hpp"
 #include "engine/application.hpp"
+#include "engine/info_and_debug.hpp"
 #include "logging.hpp"
 
 namespace bb {
@@ -22,6 +23,8 @@ namespace bb {
         );
 
         renderer = std::make_unique<Renderer>(properties.width, properties.height);
+
+        GlInfoDebug::initialize_debugging();  // TODO only in debug mode
 
         events.connect<WindowClosedEvent, &Application::on_window_closed>(this);
         events.connect<WindowResizedEvent, &Application::on_window_resized>(this);
@@ -42,6 +45,7 @@ namespace bb {
         setup_scenes(scene_name);
 
         current_scene->on_enter();
+        renderer->prerender_setup();
 
         while (running) {
             dt = calculate_delta();
@@ -58,6 +62,7 @@ namespace bb {
             check_scene_change();
         }
 
+        renderer->postrender_setup();
         current_scene->on_exit();
     }
 
@@ -75,6 +80,7 @@ namespace bb {
 
     void Application::check_scene_change() {
         if (next_scene != nullptr) {
+            renderer->postrender_setup();
             current_scene->on_exit();
             events.disconnect(current_scene);
 
@@ -82,6 +88,7 @@ namespace bb {
             next_scene = nullptr;
 
             current_scene->on_enter();
+            renderer->prerender_setup();
         }
     }
 

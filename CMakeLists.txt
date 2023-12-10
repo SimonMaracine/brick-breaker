@@ -6,15 +6,27 @@ add_library(glad STATIC "extern/glad/src/glad.c")
 
 target_include_directories(glad PUBLIC "extern/glad/include")
 
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+
 set(BUILD_SHARED_LIBS OFF)
 set(SDL_SHARED OFF)
 set(SDL_STATIC ON)
+set(ASSIMP_NO_EXPORT ON)
+set(ASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT OFF)
+set(ASSIMP_BUILD_OBJ_IMPORTER ON)
+set(ASSIMP_BUILD_TESTS OFF)
+set(ASSIMP_INSTALL OFF)
+set(ASSIMP_WARNINGS_AS_ERRORS OFF)
+set(ASSIMP_INJECT_DEBUG_POSTFIX OFF)
+set(ASSIMP_BUILD_ASSIMP_VIEW OFF)
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
 
 add_subdirectory(extern/SDL)
 add_subdirectory(extern/entt)
 add_subdirectory(extern/glm)
 add_subdirectory(extern/SDL_image)
 add_subdirectory(extern/resmanager)
+add_subdirectory(extern/assimp)
 
 add_executable(brick-breaker
     "src/engine/application_properties.hpp"
@@ -22,6 +34,7 @@ add_executable(brick-breaker
     "src/engine/application.hpp"
     "src/engine/buffer.cpp"
     "src/engine/buffer.hpp"
+    "src/engine/camera_controller.hpp"
     "src/engine/camera.cpp"
     "src/engine/camera.hpp"
     "src/engine/engine.hpp"
@@ -37,9 +50,13 @@ add_executable(brick-breaker
     "src/engine/logging.hpp"
     "src/engine/material.cpp"
     "src/engine/material.hpp"
+    "src/engine/mesh.cpp"
+    "src/engine/mesh.hpp"
     "src/engine/opengl.cpp"
     "src/engine/opengl.hpp"
     "src/engine/panic.hpp"
+    "src/engine/post_processing.hpp"
+    "src/engine/renderable.hpp"
     "src/engine/renderer.cpp"
     "src/engine/renderer.hpp"
     "src/engine/scene.cpp"
@@ -57,6 +74,8 @@ add_executable(brick-breaker
     "src/engine/window.cpp"
     "src/engine/window.hpp"
     "src/main.cpp"
+    "src/my_camera_controller.cpp"
+    "src/my_camera_controller.hpp"
 )
 
 target_link_libraries(brick-breaker PRIVATE
@@ -66,6 +85,7 @@ target_link_libraries(brick-breaker PRIVATE
     glm::glm
     SDL2_image::SDL2_image-static
     resmanager
+    assimp::assimp
 )
 
 target_include_directories(brick-breaker PRIVATE "src")

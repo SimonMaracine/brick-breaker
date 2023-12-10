@@ -2,11 +2,22 @@
 
 #include <string>
 #include <utility>
+#include <vector>
+
+#include <glm/glm.hpp>
 
 #include "engine/application.hpp"
 #include "engine/events.hpp"
 
 namespace bb {
+    class Camera;
+    class Shader;
+    class Framebuffer;
+    class Renderable;
+    class DirectionalLight;
+    class PointLight;
+    class Shader;
+
     class Scene {
     public:
         Scene(const std::string& name)
@@ -56,6 +67,19 @@ namespace bb {
         void disconnect_event(T* value_or_instance) {
             application->events.template disconnect(value_or_instance);
         }
+
+        void capture(const Camera& camera, const glm::vec3& position);
+        void add_shader(std::shared_ptr<Shader> shader);
+        void add_framebuffer(std::shared_ptr<Framebuffer> framebuffer);
+
+        void add_renderable(const Renderable& renderable);
+        void add_light(const DirectionalLight& light);
+        void add_light(const PointLight& light);
+
+        void debug_add_line(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& color);
+        void debug_add_lines(const std::vector<glm::vec3>& points, const glm::vec3& color);
+        void debug_add_point(const glm::vec3& p, const glm::vec3& color);
+        void debug_add_lamp(const glm::vec3& position, const glm::vec3& color);
     private:
         std::string name;
         Application* application {nullptr};
