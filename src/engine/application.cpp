@@ -132,6 +132,8 @@ namespace bb {
     }
 
     void Application::on_window_resized(const WindowResizedEvent& event) {
+        renderer->resize_framebuffers(event.width, event.height);
+
         log_message("WindowResized: %dx%d\n", event.width, event.height);
     }
 }

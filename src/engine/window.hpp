@@ -20,6 +20,8 @@ namespace bb {
         int get_width() const { return width; }
         int get_height() const { return height; }
 
+        void set_vsync(bool enabled);
+
         void poll_events();
         void refresh() const;
         static double get_time();  // In seconds

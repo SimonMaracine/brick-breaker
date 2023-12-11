@@ -42,6 +42,7 @@ namespace bb {
         int get_height() const;
         float get_delta() const;
         double get_fps() const;
+        void set_vsync(bool enabled);
 
         template<typename E, typename... Args>
         void enqueue_event(Args&&... args) {

@@ -61,6 +61,12 @@ namespace bb {
         SDL_Quit();
     }
 
+    void Window::set_vsync(bool enabled) {
+        if (SDL_GL_SetSwapInterval(static_cast<int>(enabled)) < 0) {
+            throw OtherError;
+        }
+    }
+
     void Window::poll_events() {
         SDL_Event event;
 

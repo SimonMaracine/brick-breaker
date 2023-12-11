@@ -30,6 +30,10 @@ namespace bb {
         return application->fps;
     }
 
+    void Scene::set_vsync(bool enabled) {
+        application->window->set_vsync(enabled);
+    }
+
     void Scene::capture(const Camera& camera, const glm::vec3& position) {
         application->renderer->capture(camera, position);
     }
