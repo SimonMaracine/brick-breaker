@@ -159,7 +159,7 @@ namespace bb {
             throw ResourceLoadingError;
         }
 
-        load(type, mesh, file_path);
+        load(type, mesh);
     }
 
     Mesh::~Mesh() {
@@ -167,7 +167,7 @@ namespace bb {
         delete[] indices;
     }
 
-    void Mesh::load(Type type, const void* pmesh, const std::string& file_path) {
+    void Mesh::load(Type type, const void* pmesh) {
         const aiMesh* mesh {static_cast<const aiMesh*>(pmesh)};
 
         switch (type) {

@@ -34,7 +34,6 @@ namespace bb {
     private:
         unsigned int array {0};
 
-        // Vertex arrays own vertex and index buffers
         std::vector<std::shared_ptr<VertexBuffer>> vertex_buffers;
         std::shared_ptr<IndexBuffer> index_buffer;
     };

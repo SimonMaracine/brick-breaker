@@ -15,6 +15,6 @@
 [submodule "extern/resmanager"]
 	path = engine/extern/resmanager
 	url = https://github.com/SimonMaracine/resource-manager
-[submodule "extern/extern/assimp"]
-	path = engine/assimp
+[submodule "engine/extern/assimp"]
+	path = engine/extern/assimp
 	url = https://github.com/assimp/assimp

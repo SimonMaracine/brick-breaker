@@ -28,7 +28,7 @@ namespace bb {
         std::size_t get_vertices_size() const { return vertices_size; }
         std::size_t get_indices_size() const { return indices_size; }
     private:
-        void load(Type type, const void* pmesh, const std::string& file_path);
+        void load(Type type, const void* pmesh);
         void allocate(const void* vertices, std::size_t vertices_size, const void* indices, std::size_t indices_size);
 
         unsigned char* vertices {nullptr};

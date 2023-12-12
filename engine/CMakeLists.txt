@@ -24,7 +24,7 @@ add_subdirectory(extern/SDL_image)
 add_subdirectory(extern/resmanager)
 add_subdirectory(extern/assimp)
 
-add_executable(bb-engine
+add_library(bb-engine
     "src/engine/application_properties.hpp"
     "src/engine/application.cpp"
     "src/engine/application.hpp"
