@@ -23,6 +23,7 @@ namespace bb {
 
     enum class Format {
         Rgba8,
+        Rgb8,
         R8
     };
 

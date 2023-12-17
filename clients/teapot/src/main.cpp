@@ -1,8 +1,8 @@
 #include <memory>
 
+#include <engine/engine.hpp>
 #include <resmanager/resmanager.hpp>
 
-#include "engine/engine.hpp"
 #include "my_camera_controller.hpp"
 
 using namespace resmanager::literals;
@@ -160,6 +160,8 @@ struct MainScene : public bb::Scene {
     }
 
     void on_window_resized(const bb::WindowResizedEvent& event) {
+        bb::log_message("WindowResized: %dx%d\n", event.width, event.height);
+
         cam.set_projection_matrix(event.width, event.height, LENS_FOV, LENS_NEAR, LENS_FAR);
     }
 

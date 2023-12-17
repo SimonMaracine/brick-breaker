@@ -166,6 +166,11 @@ namespace bb {
                 glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
                 break;
+            case Format::Rgb8:
+                glTexStorage2D(GL_TEXTURE_2D, specification.mipmap_levels, GL_RGB8, width, height);
+                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+                break;
             case Format::R8:
                 glTexStorage2D(GL_TEXTURE_2D, specification.mipmap_levels, GL_R8, width, height);
                 glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RED, GL_UNSIGNED_BYTE, data);
