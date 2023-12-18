@@ -1,6 +1,7 @@
 #include <engine/engine.hpp>
 #include <resmanager/resmanager.hpp>
 #include <glm/glm.hpp>
+#include <glm/gtc/random.hpp>
 
 #include "my_camera_controller.hpp"
 #include "level.hpp"
@@ -33,8 +34,16 @@ void LevelScene::on_enter() {
     directional_light.specular_color = glm::vec3(1.0f);
 
     connect_event<bb::WindowResizedEvent, &LevelScene::on_window_resized>(this);
+    connect_event<bb::KeyPressedEvent, &LevelScene::on_key_pressed>(this);
+    connect_event<bb::KeyReleasedEvent, &LevelScene::on_key_released>(this);
 
+    load_shaders();
     load_platform();
+    load_ball();
+    load_paddle();
+
+    ball_position = glm::vec3(0.0f, 0.65f, 0.0f);
+    ball_velocity = glm::linearRand(glm::vec3(7.0f, 0.0f, 8.0f), glm::vec3(8.0f, 0.0f, 9.0f));
 }
 
 void LevelScene::on_exit() {
@@ -55,6 +64,45 @@ void LevelScene::on_update() {
 
     add_renderable(platform);
 
+    if (ball_position.x < -9.3f || ball_position.x > 9.3f) {
+        ball_velocity.x = -ball_velocity.x;
+    }
+
+    if (ball_position.z < -9.3f) {
+        ball_velocity.z = -ball_velocity.z;
+    }
+
+    if (ball_position.z > 9.8f && ball_position.z < 11.0f) {
+        if (ball_position.x > paddle_position - 2.0f && ball_position.x < paddle_position + 2.0f) {
+            ball_position.z = 9.8f - 0.001f;
+            ball_velocity.z = -ball_velocity.z;
+        }
+    }
+
+    if (ball_position.z > 10.0f) {
+        bb::log_message("Game over!\n");
+    }
+
+    ball_position += ball_velocity * get_delta();
+    paddle_position += paddle_velocity * get_delta();
+
+    bb::Renderable ball;
+    ball.vertex_array = cache_vertex_array["ball"_H];
+    ball.material = cache_material_instance["ball"_H];
+    ball.position = ball_position;
+    ball.scale = 0.35f;
+
+    add_renderable(ball);
+
+    bb::Renderable paddle;
+    paddle.vertex_array = cache_vertex_array["paddle"_H];
+    paddle.material = cache_material_instance["paddle"_H];
+    paddle.position = glm::vec3(paddle_position, 0.7f, 10.5f);
+    paddle.rotation.y = glm::radians(90.0f);
+    paddle.scale = 0.35f;
+
+    add_renderable(paddle);
+
     debug_add_line(glm::vec3(-5.0f, 0.0f, 0.0f), glm::vec3(5.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     debug_add_line(glm::vec3(0.0f, -5.0f, 0.0f), glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     debug_add_line(glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -64,10 +112,71 @@ void LevelScene::on_window_resized(bb::WindowResizedEvent& event) {
     cam.set_projection_matrix(event.width, event.height, LENS_FOV, LENS_NEAR, LENS_FAR);
 }
 
+void LevelScene::on_key_pressed(bb::KeyPressedEvent& event) {
+    switch (event.key) {
+        case bb::KeyCode::K_LEFT:
+            paddle_velocity = -10.0f;
+            break;
+        case bb::KeyCode::K_RIGHT:
+            paddle_velocity = 10.0f;
+            break;
+        default:
+            break;
+    }
+}
+
+void LevelScene::on_key_released(bb::KeyReleasedEvent& event) {
+    switch (event.key) {
+        case bb::KeyCode::K_LEFT:
+        case bb::KeyCode::K_RIGHT:
+            paddle_velocity = 0.0f;
+            break;
+        case bb::KeyCode::K_r:
+            change_scene("level");
+            break;
+        default:
+            break;
+    }
+}
+
+void LevelScene::load_shaders() {
+    {
+        // This is a generic shader
+        auto shader {std::make_shared<bb::Shader>(
+            "data/shaders/simple_textured.vert",
+            "data/shaders/simple_textured.frag"
+        )};
+
+        add_shader(shader);
+
+        // And a generic material
+        auto material {cache_material.load("simple_textured"_H, shader)};
+        material->add_texture("u_material.ambient_diffuse"_H);
+        material->add_uniform(bb::Material::Uniform::Vec3, "u_material.specular"_H);
+        material->add_uniform(bb::Material::Uniform::Float, "u_material.shininess"_H);
+    }
+
+    {
+        // This is also a generic shader
+        auto shader {std::make_shared<bb::Shader>(
+            "data/shaders/simple.vert",
+            "data/shaders/simple.frag"
+        )};
+
+        add_shader(shader);
+
+        // And a generic material
+        auto material {cache_material.load("simple"_H, shader)};
+        material->add_uniform(bb::Material::Uniform::Vec3, "u_material.ambient_diffuse"_H);
+        material->add_uniform(bb::Material::Uniform::Vec3, "u_material.specular"_H);
+        material->add_uniform(bb::Material::Uniform::Float, "u_material.shininess"_H);
+    }
+}
+
 void LevelScene::load_platform() {
     auto mesh {std::make_shared<bb::Mesh>(
         "data/models/platform.obj",
-        "Walls",
+        "Platform",
         bb::Mesh::Type::PTN
     )};
 
@@ -94,24 +203,77 @@ void LevelScene::load_platform() {
 
     bb::TextureSpecification specification;
     specification.format = bb::Format::Rgb8;
+    specification.mipmap_levels = 3;
     auto texture {cache_texture.load("platform"_H, "data/textures/old-bricks.jpeg", specification)};
 
-    // This is a generic shader
-    auto shader {std::make_shared<bb::Shader>(
-        "data/shaders/simple_textured.vert",
-        "data/shaders/simple_textured.frag"
+    auto material_instance {cache_material_instance.load("platform"_H, cache_material["simple_textured"_H])};
+    material_instance->set_texture("u_material.ambient_diffuse"_H, texture, 0);
+    material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.35f));
+    material_instance->set_float("u_material.shininess"_H, 16.0f);
+}
+
+void LevelScene::load_ball() {
+    auto mesh {std::make_shared<bb::Mesh>(
+        "data/models/ball.obj",
+        "Sphere",
+        bb::Mesh::Type::PN
     )};
 
-    add_shader(shader);
+    auto vertex_buffer {std::make_shared<bb::VertexBuffer>(
+        mesh->get_vertices(),
+        mesh->get_vertices_size()
+    )};
 
-    // And a generic material
-    auto simple_material {std::make_shared<bb::Material>(shader)};
-    simple_material->add_texture("u_material.ambient_diffuse"_H);
-    simple_material->add_uniform(bb::Material::Uniform::Vec3, "u_material.specular"_H);
-    simple_material->add_uniform(bb::Material::Uniform::Float, "u_material.shininess"_H);
+    auto index_buffer {std::make_shared<bb::IndexBuffer>(
+        mesh->get_indices(),
+        mesh->get_indices_size()
+    )};
 
-    auto material_instance {cache_material_instance.load("platform"_H, simple_material)};
-    material_instance->set_texture("u_material.ambient_diffuse"_H, texture, 0);
+    auto vertex_array {cache_vertex_array.load("ball"_H)};
+    vertex_array->configure([&](bb::VertexArray* va) {
+        bb::VertexBufferLayout layout;
+        layout.add(0, bb::VertexBufferLayout::Float, 3);
+        layout.add(1, bb::VertexBufferLayout::Float, 3);
+
+        va->add_vertex_buffer(vertex_buffer, layout);
+        va->add_index_buffer(index_buffer);
+    });
+
+    auto material_instance {cache_material_instance.load("ball"_H, cache_material["simple"_H])};
+    material_instance->set_vec3("u_material.ambient_diffuse"_H, glm::vec3(0.7f, 0.2f, 0.3f));
     material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.7f));
     material_instance->set_float("u_material.shininess"_H, 64.0f);
+}
+
+void LevelScene::load_paddle() {
+    auto mesh {std::make_shared<bb::Mesh>(
+        "data/models/paddle.obj",
+        "Paddle",
+        bb::Mesh::Type::PN
+    )};
+
+    auto vertex_buffer {std::make_shared<bb::VertexBuffer>(
+        mesh->get_vertices(),
+        mesh->get_vertices_size()
+    )};
+
+    auto index_buffer {std::make_shared<bb::IndexBuffer>(
+        mesh->get_indices(),
+        mesh->get_indices_size()
+    )};
+
+    auto vertex_array {cache_vertex_array.load("paddle"_H)};
+    vertex_array->configure([&](bb::VertexArray* va) {
+        bb::VertexBufferLayout layout;
+        layout.add(0, bb::VertexBufferLayout::Float, 3);
+        layout.add(1, bb::VertexBufferLayout::Float, 3);
+
+        va->add_vertex_buffer(vertex_buffer, layout);
+        va->add_index_buffer(index_buffer);
+    });
+
+    auto material_instance {cache_material_instance.load("paddle"_H, cache_material["simple"_H])};
+    material_instance->set_vec3("u_material.ambient_diffuse"_H, glm::vec3(0.64f, 0.6f, 0.65f));
+    material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.4f));
+    material_instance->set_float("u_material.shininess"_H, 32.0f);
 }
