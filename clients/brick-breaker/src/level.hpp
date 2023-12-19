@@ -30,6 +30,7 @@ struct LevelScene : public bb::Scene {
 
     glm::vec3 ball_position {};
     glm::vec3 ball_velocity {};
+    glm::vec3 ball_rotation {};
     float paddle_position {};
     float paddle_velocity {};
 
