@@ -8,7 +8,7 @@
 #include "engine/events.hpp"
 #include "my_camera_controller.hpp"
 
-static constexpr float MIN_DISTANCE_TO_POINT {10.0f};
+static constexpr float MIN_DISTANCE_TO_POINT {16.0f};
 static constexpr float MAX_DISTANCE_TO_POINT {32.0f};
 
 MyCameraController::MyCameraController(

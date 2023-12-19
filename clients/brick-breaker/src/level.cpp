@@ -28,7 +28,7 @@ void LevelScene::on_enter() {
 
     connect_event<bb::KeyPressedEvent, &MyCameraController::on_key_pressed>(cam_controller);
 
-    directional_light.direction = glm::vec3(-0.2f, -1.0f, -0.3f);
+    directional_light.direction = glm::vec3(-0.7f, -1.0f, 0.2f);
     directional_light.ambient_color = glm::vec3(0.1f);
     directional_light.diffuse_color = glm::vec3(1.0f);
     directional_light.specular_color = glm::vec3(1.0f);
@@ -44,6 +44,8 @@ void LevelScene::on_enter() {
 
     ball_position = glm::vec3(0.0f, 0.65f, 0.0f);
     ball_velocity = glm::linearRand(glm::vec3(7.0f, 0.0f, 8.0f), glm::vec3(8.0f, 0.0f, 9.0f));
+    paddle_position = 0.0f;
+    paddle_velocity = 0.0f;
 }
 
 void LevelScene::on_exit() {
@@ -81,6 +83,14 @@ void LevelScene::on_update() {
 
     if (ball_position.z > 10.0f) {
         bb::log_message("Game over!\n");
+    }
+
+    if (paddle_position < -10.0f) {
+        paddle_position = -10.0f;
+    }
+
+    if (paddle_position > 10.0f) {
+        paddle_position = 10.0f;
     }
 
     ball_position += ball_velocity * get_delta();
