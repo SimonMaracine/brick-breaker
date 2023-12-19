@@ -21,6 +21,7 @@ namespace bb {
         using KeyHash = resmanager::Hash<Key>;
 
         Shader(const std::string& source_vertex, const std::string& source_fragment);
+        Shader(const std::string& source_vertex, const std::string& source_fragment, const std::string& includes);
         ~Shader();
 
         Shader(const Shader&) = delete;

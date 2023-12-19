@@ -9,11 +9,13 @@
 #include <stdexcept>
 #include <algorithm>
 #include <cassert>
+#include <cstdlib>
 
 #include <glm/glm.hpp>
 #include <resmanager/resmanager.hpp>
 #include <glad/glad.h>
 #include <glm/gtc/type_ptr.hpp>
+#include <stb_include.h>
 
 #include "engine/panic.hpp"
 #include "engine/shader.hpp"
@@ -34,6 +36,63 @@ namespace bb {
         delete_intermediates();
         introspect_program();
         check_and_cache_uniforms();
+    }
+
+    Shader::Shader(const std::string& source_vertex, const std::string& source_fragment, const std::string& includes) {
+        char error[256] {};
+        char* result_vertex {nullptr};
+        char* result_fragment {nullptr};
+
+        try {
+            result_vertex = stb_include_file(
+                const_cast<char*>(source_vertex.c_str()),
+                nullptr,
+                const_cast<char*>(includes.c_str()),
+                error
+            );
+
+            if (result_vertex == nullptr) {
+                log_message("Could not load the files of shader program %d: %s\n", program, error);
+                throw ResourceLoadingError;
+            }
+
+            result_fragment = stb_include_file(
+                const_cast<char*>(source_fragment.c_str()),
+                nullptr,
+                const_cast<char*>(includes.c_str()),
+                error
+            );
+
+            if (result_fragment == nullptr) {
+                log_message("Could not load the files of shader program %d: %s\n", program, error);
+                throw ResourceLoadingError;
+            }
+
+            vertex_shader = compile_shader(
+                std::make_pair(reinterpret_cast<unsigned char*>(result_vertex), std::strlen(result_vertex)),
+                GL_VERTEX_SHADER
+            );
+            fragment_shader = compile_shader(
+                std::make_pair(reinterpret_cast<unsigned char*>(result_fragment), std::strlen(result_fragment)),
+                GL_FRAGMENT_SHADER
+            );
+            program = create_program();
+
+            if (!check_linking(program)) {
+                log_message("Could not link shader program %d\n", program);
+                throw ResourceLoadingError;
+            }
+
+            delete_intermediates();
+            introspect_program();
+            check_and_cache_uniforms();
+        } catch (RuntimeError) {
+            // This makes sure that memory is freed
+            std::free(result_vertex);
+            std::free(result_fragment);
+
+            throw;
+        }
     }
 
     Shader::~Shader() {

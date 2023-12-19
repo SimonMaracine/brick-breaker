@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.20)
 
 add_library(glad STATIC "extern/glad/src/glad.c")
-
 target_include_directories(glad PUBLIC "extern/glad/include")
+
+add_library(stb STATIC "extern/stb_include/stb_include.c" "extern/stb_truetype/stb_truetype.c")
+target_include_directories(stb PUBLIC "extern/stb_include" "extern/stb_truetype")
 
 set(BUILD_SHARED_LIBS OFF)
 set(SDL_SHARED OFF)
@@ -76,6 +78,7 @@ target_link_libraries(bb-engine PRIVATE
     glad
     SDL2_image::SDL2_image-static
     assimp::assimp
+    stb
 )
 
 target_link_libraries(bb-engine PUBLIC
