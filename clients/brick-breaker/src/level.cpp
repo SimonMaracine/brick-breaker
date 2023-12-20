@@ -1,7 +1,9 @@
 #include <engine/engine.hpp>
 #include <resmanager/resmanager.hpp>
 #include <glm/glm.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/random.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 
 #include "my_camera_controller.hpp"
 #include "level.hpp"
@@ -43,8 +45,8 @@ void LevelScene::on_enter() {
     load_paddle();
 
     ball_position = glm::vec3(0.0f, 0.65f, 0.0f);
-    ball_velocity = glm::vec3(3.0f, 0.0f, -1.0f);  // glm::linearRand(glm::vec3(7.0f, 0.0f, 8.0f), glm::vec3(8.0f, 0.0f, 9.0f));
-    ball_rotation = {};
+    ball_velocity = glm::linearRand(glm::vec3(2.0f, 0.0f, 4.0f), glm::vec3(1.0f, 0.0f, 3.0f));
+    ball_rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
 }
 
 void LevelScene::on_exit() {
@@ -84,16 +86,22 @@ void LevelScene::on_update() {
         bb::log_message("Game over!\n");
     }
 
-    // ball_position += ball_velocity * get_delta();
+    ball_position += ball_velocity * get_delta();
     paddle_position += paddle_velocity * get_delta();
-    ball_rotation += glm::radians(glm::vec3(1.0f, 0.0f, 0.0f));  // TODO
+
+    glm::mat4 t {glm::mat4(1.0f)};
+    t = glm::translate(t, ball_position);
+    t *= glm::toMat4(ball_rotation);
+    t = glm::rotate(t, glm::length(ball_velocity) * 0.1f, glm::rotate(ball_velocity, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
+    t = glm::scale(t, glm::vec3(0.35f));
+
+    const glm::quat r {glm::angleAxis(glm::length(ball_velocity) * 0.01f, glm::rotate(glm::normalize(ball_velocity), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)))};
+    ball_rotation = r * ball_rotation;
 
     bb::Renderable ball;
     ball.vertex_array = cache_vertex_array["ball"_H];
     ball.material = cache_material_instance["ball"_H];
-    ball.position = ball_position;
-    ball.rotation = ball_rotation;
-    ball.scale = 0.35f;
+    ball.transformation = t;
 
     add_renderable(ball);
 
@@ -245,7 +253,7 @@ void LevelScene::load_ball() {
 
     bb::TextureSpecification specification;
     specification.mipmap_levels = 1;
-    auto texture {cache_texture.load("ball"_H, "data/textures/computer_thinking_indicator.png", specification)};
+    auto texture {cache_texture.load("ball"_H, "data/textures/ball-texture.png", specification)};
 
     auto material_instance {cache_material_instance.load("ball"_H, cache_material["simple_textured"_H])};
     material_instance->set_texture("u_material.ambient_diffuse"_H, texture, 0);
