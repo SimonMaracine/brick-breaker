@@ -1,7 +1,9 @@
 #include <engine/engine.hpp>
 #include <resmanager/resmanager.hpp>
 #include <glm/glm.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/random.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 
 #include "my_camera_controller.hpp"
 #include "level.hpp"
@@ -43,7 +45,8 @@ void LevelScene::on_enter() {
     load_paddle();
 
     ball_position = glm::vec3(0.0f, 0.65f, 0.0f);
-    ball_velocity = glm::linearRand(glm::vec3(7.0f, 0.0f, 8.0f), glm::vec3(8.0f, 0.0f, 9.0f));
+    ball_velocity = glm::linearRand(glm::vec3(2.0f, 0.0f, 4.0f), glm::vec3(1.0f, 0.0f, 3.0f));
+    ball_rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
     paddle_position = 0.0f;
     paddle_velocity = 0.0f;
 }
@@ -96,11 +99,19 @@ void LevelScene::on_update() {
     ball_position += ball_velocity * get_delta();
     paddle_position += paddle_velocity * get_delta();
 
+    glm::mat4 t {glm::mat4(1.0f)};
+    t = glm::translate(t, ball_position);
+    t *= glm::toMat4(ball_rotation);
+    t = glm::rotate(t, glm::length(ball_velocity) * 0.1f, glm::rotate(ball_velocity, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
+    t = glm::scale(t, glm::vec3(0.35f));
+
+    const glm::quat r {glm::angleAxis(glm::length(ball_velocity) * 0.01f, glm::rotate(glm::normalize(ball_velocity), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)))};
+    ball_rotation = r * ball_rotation;
+
     bb::Renderable ball;
     ball.vertex_array = cache_vertex_array["ball"_H];
     ball.material = cache_material_instance["ball"_H];
-    ball.position = ball_position;
-    ball.scale = 0.35f;
+    ball.transformation = t;
 
     add_renderable(ball);
 
@@ -125,10 +136,10 @@ void LevelScene::on_window_resized(bb::WindowResizedEvent& event) {
 void LevelScene::on_key_pressed(bb::KeyPressedEvent& event) {
     switch (event.key) {
         case bb::KeyCode::K_LEFT:
-            paddle_velocity = -10.0f;
+            paddle_velocity = -11.0f;
             break;
         case bb::KeyCode::K_RIGHT:
-            paddle_velocity = 10.0f;
+            paddle_velocity = 11.0f;
             break;
         default:
             break;
@@ -226,7 +237,7 @@ void LevelScene::load_ball() {
     auto mesh {std::make_shared<bb::Mesh>(
         "data/models/ball.obj",
         "Sphere",
-        bb::Mesh::Type::PN
+        bb::Mesh::Type::PTN
     )};
 
     auto vertex_buffer {std::make_shared<bb::VertexBuffer>(
@@ -243,14 +254,19 @@ void LevelScene::load_ball() {
     vertex_array->configure([&](bb::VertexArray* va) {
         bb::VertexBufferLayout layout;
         layout.add(0, bb::VertexBufferLayout::Float, 3);
-        layout.add(1, bb::VertexBufferLayout::Float, 3);
+        layout.add(1, bb::VertexBufferLayout::Float, 2);
+        layout.add(2, bb::VertexBufferLayout::Float, 3);
 
         va->add_vertex_buffer(vertex_buffer, layout);
         va->add_index_buffer(index_buffer);
     });
 
-    auto material_instance {cache_material_instance.load("ball"_H, cache_material["simple"_H])};
-    material_instance->set_vec3("u_material.ambient_diffuse"_H, glm::vec3(0.7f, 0.2f, 0.3f));
+    bb::TextureSpecification specification;
+    specification.mipmap_levels = 1;
+    auto texture {cache_texture.load("ball"_H, "data/textures/ball-texture.png", specification)};
+
+    auto material_instance {cache_material_instance.load("ball"_H, cache_material["simple_textured"_H])};
+    material_instance->set_texture("u_material.ambient_diffuse"_H, texture, 0);
     material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.7f));
     material_instance->set_float("u_material.shininess"_H, 64.0f);
 }

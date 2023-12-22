@@ -3,6 +3,7 @@
 #include <engine/engine.hpp>
 #include <resmanager/resmanager.hpp>
 #include <glm/glm.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 #include "my_camera_controller.hpp"
 
@@ -30,6 +31,7 @@ struct LevelScene : public bb::Scene {
 
     glm::vec3 ball_position {};
     glm::vec3 ball_velocity {};
+    glm::quat ball_rotation {};
     float paddle_position {};
     float paddle_velocity {};
 
