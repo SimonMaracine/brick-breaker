@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
 
 add_executable(brick-breaker
+    "src/collision.cpp"
+    "src/collision.hpp"
     "src/level.cpp"
     "src/level.hpp"
     "src/main.cpp"

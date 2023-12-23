@@ -23,6 +23,7 @@ struct LevelScene : public bb::Scene {
     void load_platform();
     void load_ball();
     void load_paddle();
+    void load_brick();
 
     bb::Camera cam;
     MyCameraController cam_controller;

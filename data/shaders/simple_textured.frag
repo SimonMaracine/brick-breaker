@@ -49,7 +49,7 @@ layout(shared, binding = 2) uniform ViewPosition {
 // This is called Phong shading
 
 vec3 calculate_directional_light() {
-    const vec3 color = vec3(texture(u_material.ambient_diffuse, v_texture_coordinate));
+    const vec3 color = vec3(texture(u_material.ambient_diffuse, vec2(v_texture_coordinate.x, 1.0 - v_texture_coordinate.y)));
 
     // Ambient light
     const vec3 ambient_light = color * u_directional_light.ambient;

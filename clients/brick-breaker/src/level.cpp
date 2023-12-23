@@ -7,6 +7,7 @@
 
 #include "my_camera_controller.hpp"
 #include "level.hpp"
+#include "collision.hpp"
 
 // https://www.goodtextures.com/image/21296/old-bricks
 // https://stackoverflow.com/questions/39280104/how-to-get-current-camera-position-from-view-matrix
@@ -30,7 +31,7 @@ void LevelScene::on_enter() {
 
     connect_event<bb::KeyPressedEvent, &MyCameraController::on_key_pressed>(cam_controller);
 
-    directional_light.direction = glm::vec3(-0.7f, -1.0f, 0.2f);
+    directional_light.direction = glm::vec3(-0.6f, -1.0f, 0.2f);
     directional_light.ambient_color = glm::vec3(0.1f);
     directional_light.diffuse_color = glm::vec3(1.0f);
     directional_light.specular_color = glm::vec3(1.0f);
@@ -43,6 +44,7 @@ void LevelScene::on_enter() {
     load_platform();
     load_ball();
     load_paddle();
+    load_brick();
 
     ball_position = glm::vec3(0.0f, 0.65f, 0.0f);
     ball_velocity = glm::linearRand(glm::vec3(2.0f, 0.0f, 4.0f), glm::vec3(1.0f, 0.0f, 3.0f));
@@ -96,6 +98,20 @@ void LevelScene::on_update() {
         paddle_position = 10.0f;
     }
 
+    Sphere s;
+    s.position = ball_position;
+    s.radius = 1.0f;
+
+    Cube c;
+    c.position = glm::vec3(2.0f, 0.65f, 0.5f);
+    c.width = 0.5f;
+    c.height = 0.2f;
+    c.depth = 0.2f;
+
+    if (collision_sphere_cube(s, c)) {
+        bb::log_message("Collided!\n");
+    }
+
     ball_position += ball_velocity * get_delta();
     paddle_position += paddle_velocity * get_delta();
 
@@ -103,7 +119,7 @@ void LevelScene::on_update() {
     t = glm::translate(t, ball_position);
     t *= glm::toMat4(ball_rotation);
     t = glm::rotate(t, glm::length(ball_velocity) * 0.1f, glm::rotate(ball_velocity, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
-    t = glm::scale(t, glm::vec3(0.35f));
+    t = glm::scale(t, glm::vec3(0.25f));
 
     const glm::quat r {glm::angleAxis(glm::length(ball_velocity) * 0.01f, glm::rotate(glm::normalize(ball_velocity), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)))};
     ball_rotation = r * ball_rotation;
@@ -123,6 +139,14 @@ void LevelScene::on_update() {
     paddle.scale = 0.35f;
 
     add_renderable(paddle);
+
+    bb::Renderable brick;
+    brick.vertex_array = cache_vertex_array["brick1"_H];
+    brick.material = cache_material_instance["brick1"_H];
+    brick.position = glm::vec3(2.0f, 0.65f, 0.5f);
+    brick.scale = 0.25f;
+
+    add_renderable(brick);
 
     debug_add_line(glm::vec3(-5.0f, 0.0f, 0.0f), glm::vec3(5.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     debug_add_line(glm::vec3(0.0f, -5.0f, 0.0f), glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -262,7 +286,6 @@ void LevelScene::load_ball() {
     });
 
     bb::TextureSpecification specification;
-    specification.mipmap_levels = 1;
     auto texture {cache_texture.load("ball"_H, "data/textures/ball-texture.png", specification)};
 
     auto material_instance {cache_material_instance.load("ball"_H, cache_material["simple_textured"_H])};
@@ -275,7 +298,7 @@ void LevelScene::load_paddle() {
     auto mesh {std::make_shared<bb::Mesh>(
         "data/models/paddle.obj",
         "Paddle",
-        bb::Mesh::Type::PN
+        bb::Mesh::Type::PTN
     )};
 
     auto vertex_buffer {std::make_shared<bb::VertexBuffer>(
@@ -292,14 +315,51 @@ void LevelScene::load_paddle() {
     vertex_array->configure([&](bb::VertexArray* va) {
         bb::VertexBufferLayout layout;
         layout.add(0, bb::VertexBufferLayout::Float, 3);
+        layout.add(1, bb::VertexBufferLayout::Float, 2);
+        layout.add(2, bb::VertexBufferLayout::Float, 3);
+
+        va->add_vertex_buffer(vertex_buffer, layout);
+        va->add_index_buffer(index_buffer);
+    });
+
+    bb::TextureSpecification specification;
+    auto texture {cache_texture.load("paddle"_H, "data/textures/paddle-texture.png", specification)};
+
+    auto material_instance {cache_material_instance.load("paddle"_H, cache_material["simple_textured"_H])};
+    material_instance->set_texture("u_material.ambient_diffuse"_H, texture, 0);
+    material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.4f));
+    material_instance->set_float("u_material.shininess"_H, 32.0f);
+}
+
+void LevelScene::load_brick() {
+    auto mesh {std::make_shared<bb::Mesh>(
+        "data/models/brick1.obj",
+        "Brick1",
+        bb::Mesh::Type::PN
+    )};
+
+    auto vertex_buffer {std::make_shared<bb::VertexBuffer>(
+        mesh->get_vertices(),
+        mesh->get_vertices_size()
+    )};
+
+    auto index_buffer {std::make_shared<bb::IndexBuffer>(
+        mesh->get_indices(),
+        mesh->get_indices_size()
+    )};
+
+    auto vertex_array {cache_vertex_array.load("brick1"_H)};
+    vertex_array->configure([&](bb::VertexArray* va) {
+        bb::VertexBufferLayout layout;
+        layout.add(0, bb::VertexBufferLayout::Float, 3);
         layout.add(1, bb::VertexBufferLayout::Float, 3);
 
         va->add_vertex_buffer(vertex_buffer, layout);
         va->add_index_buffer(index_buffer);
     });
 
-    auto material_instance {cache_material_instance.load("paddle"_H, cache_material["simple"_H])};
-    material_instance->set_vec3("u_material.ambient_diffuse"_H, glm::vec3(0.64f, 0.6f, 0.65f));
+    auto material_instance {cache_material_instance.load("brick1"_H, cache_material["simple"_H])};
+    material_instance->set_vec3("u_material.ambient_diffuse"_H, glm::vec3(0.7f, 0.7f, 0.8f));
     material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.4f));
     material_instance->set_float("u_material.shininess"_H, 32.0f);
 }
