@@ -1,13 +1,17 @@
+#include <unordered_map>
+
 #include <engine/engine.hpp>
 #include <resmanager/resmanager.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
-#include <glm/gtc/random.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
 #include "my_camera_controller.hpp"
-#include "level.hpp"
 #include "collision.hpp"
+#include "paddle.hpp"
+#include "ball.hpp"
+#include "events.hpp"
+#include "level.hpp"
 
 // https://www.goodtextures.com/image/21296/old-bricks
 // https://stackoverflow.com/questions/39280104/how-to-get-current-camera-position-from-view-matrix
@@ -40,17 +44,17 @@ void LevelScene::on_enter() {
     connect_event<bb::KeyPressedEvent, &LevelScene::on_key_pressed>(this);
     connect_event<bb::KeyReleasedEvent, &LevelScene::on_key_released>(this);
 
+    connect_event<BallPaddleCollisionEvent, &LevelScene::on_ball_paddle_collision>(this);
+
     load_shaders();
     load_platform();
     load_ball();
     load_paddle();
     load_brick();
 
-    ball_position = glm::vec3(0.0f, 0.65f, 0.0f);
-    ball_velocity = glm::linearRand(glm::vec3(2.0f, 0.0f, 4.0f), glm::vec3(1.0f, 0.0f, 3.0f));
-    ball_rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
-    paddle_position = 0.0f;
-    paddle_velocity = 0.0f;
+    paddle = Paddle();
+    balls.clear();
+    balls[0u] = Ball(0u);
 }
 
 void LevelScene::on_exit() {
@@ -64,89 +68,46 @@ void LevelScene::on_update() {
     capture(cam, cam_controller.get_position());
     add_light(directional_light);
 
-    bb::Renderable platform;
-    platform.vertex_array = cache_vertex_array["platform"_H];
-    platform.material = cache_material_instance["platform"_H];
-    platform.rotation.y += glm::radians(90.0f);
+    update_paddle(paddle);
 
-    add_renderable(platform);
-
-    if (ball_position.x < -9.3f || ball_position.x > 9.3f) {
-        ball_velocity.x = -ball_velocity.x;
+    for (auto& [_, ball] : balls) {
+        update_ball(ball);
     }
 
-    if (ball_position.z < -9.3f) {
-        ball_velocity.z = -ball_velocity.z;
+    update_collisions();
+
+    bb::Renderable r_platform;
+    r_platform.vertex_array = cache_vertex_array["platform"_H];
+    r_platform.material = cache_material_instance["platform"_H];
+    r_platform.rotation.y = glm::radians(90.0f);
+
+    add_renderable(r_platform);
+
+    bb::Renderable r_paddle;
+    r_paddle.vertex_array = cache_vertex_array["paddle"_H];
+    r_paddle.material = cache_material_instance["paddle"_H];
+    r_paddle.position = paddle.get_position();
+    r_paddle.rotation = paddle.get_rotation();
+    r_paddle.scale = paddle.get_scale();
+
+    add_renderable(r_paddle);
+
+    for (const auto& [_, ball] : balls) {
+        bb::Renderable r_ball;
+        r_ball.vertex_array = cache_vertex_array["ball"_H];
+        r_ball.material = cache_material_instance["ball"_H];
+        r_ball.transformation = ball.transformation;
+
+        add_renderable(r_ball);
     }
 
-    if (ball_position.z > 9.8f && ball_position.z < 11.0f) {
-        if (ball_position.x > paddle_position - 2.0f && ball_position.x < paddle_position + 2.0f) {
-            ball_position.z = 9.8f - 0.001f;
-            ball_velocity.z = -ball_velocity.z;
-        }
-    }
+    bb::Renderable r_brick;
+    r_brick.vertex_array = cache_vertex_array["brick1"_H];
+    r_brick.material = cache_material_instance["brick1"_H];
+    r_brick.position = glm::vec3(2.0f, 0.65f, 0.5f);
+    r_brick.scale = 0.25f;
 
-    if (ball_position.z > 10.0f) {
-        bb::log_message("Game over!\n");
-    }
-
-    if (paddle_position < -10.0f) {
-        paddle_position = -10.0f;
-    }
-
-    if (paddle_position > 10.0f) {
-        paddle_position = 10.0f;
-    }
-
-    Sphere s;
-    s.position = ball_position;
-    s.radius = 1.0f;
-
-    Cube c;
-    c.position = glm::vec3(2.0f, 0.65f, 0.5f);
-    c.width = 0.5f;
-    c.height = 0.2f;
-    c.depth = 0.2f;
-
-    if (collision_sphere_cube(s, c)) {
-        bb::log_message("Collided!\n");
-    }
-
-    ball_position += ball_velocity * get_delta();
-    paddle_position += paddle_velocity * get_delta();
-
-    glm::mat4 t {glm::mat4(1.0f)};
-    t = glm::translate(t, ball_position);
-    t *= glm::toMat4(ball_rotation);
-    t = glm::rotate(t, glm::length(ball_velocity) * 0.1f, glm::rotate(ball_velocity, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
-    t = glm::scale(t, glm::vec3(0.25f));
-
-    const glm::quat r {glm::angleAxis(glm::length(ball_velocity) * 0.01f, glm::rotate(glm::normalize(ball_velocity), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)))};
-    ball_rotation = r * ball_rotation;
-
-    bb::Renderable ball;
-    ball.vertex_array = cache_vertex_array["ball"_H];
-    ball.material = cache_material_instance["ball"_H];
-    ball.transformation = t;
-
-    add_renderable(ball);
-
-    bb::Renderable paddle;
-    paddle.vertex_array = cache_vertex_array["paddle"_H];
-    paddle.material = cache_material_instance["paddle"_H];
-    paddle.position = glm::vec3(paddle_position, 0.7f, 10.5f);
-    paddle.rotation.y = glm::radians(90.0f);
-    paddle.scale = 0.35f;
-
-    add_renderable(paddle);
-
-    bb::Renderable brick;
-    brick.vertex_array = cache_vertex_array["brick1"_H];
-    brick.material = cache_material_instance["brick1"_H];
-    brick.position = glm::vec3(2.0f, 0.65f, 0.5f);
-    brick.scale = 0.25f;
-
-    add_renderable(brick);
+    add_renderable(r_brick);
 
     debug_add_line(glm::vec3(-5.0f, 0.0f, 0.0f), glm::vec3(5.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     debug_add_line(glm::vec3(0.0f, -5.0f, 0.0f), glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -160,10 +121,10 @@ void LevelScene::on_window_resized(bb::WindowResizedEvent& event) {
 void LevelScene::on_key_pressed(bb::KeyPressedEvent& event) {
     switch (event.key) {
         case bb::KeyCode::K_LEFT:
-            paddle_velocity = -11.0f;
+            paddle.velocity = -11.0f;
             break;
         case bb::KeyCode::K_RIGHT:
-            paddle_velocity = 11.0f;
+            paddle.velocity = 11.0f;
             break;
         default:
             break;
@@ -174,7 +135,7 @@ void LevelScene::on_key_released(bb::KeyReleasedEvent& event) {
     switch (event.key) {
         case bb::KeyCode::K_LEFT:
         case bb::KeyCode::K_RIGHT:
-            paddle_velocity = 0.0f;
+            paddle.velocity = 0.0f;
             break;
         case bb::KeyCode::K_r:
             change_scene("level");
@@ -362,4 +323,95 @@ void LevelScene::load_brick() {
     material_instance->set_vec3("u_material.ambient_diffuse"_H, glm::vec3(0.7f, 0.7f, 0.8f));
     material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.4f));
     material_instance->set_float("u_material.shininess"_H, 32.0f);
+}
+
+void LevelScene::update_collisions() {
+    for (auto& [index, ball] : balls) {
+        Sphere s;
+        s.position = ball.position;
+        s.radius = 1.0f;
+
+        Box b;
+        b.position = paddle.get_position();
+        b.width = paddle.get_dimensions().x;
+        b.height = paddle.get_dimensions().y;
+        b.depth = paddle.get_dimensions().z;
+
+        if (collision_sphere_box(s, b)) {
+            bb::log_message("Collided!\n");
+
+            enqueue_event<BallPaddleCollisionEvent>(index);
+        }
+    }
+}
+
+void LevelScene::update_paddle(Paddle& paddle) {
+    paddle.position += paddle.velocity * get_delta();
+
+    if (paddle.position < -10.0f) {
+        paddle.position = -10.0f;
+    }
+
+    if (paddle.position > 10.0f) {
+        paddle.position = 10.0f;
+    }
+}
+
+void LevelScene::update_ball(Ball& ball) {
+    ball.position += ball.velocity * get_delta();
+
+    const auto perpendicular_velocity {glm::rotate(glm::normalize(ball.velocity), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f))};
+
+    glm::mat4 trans {glm::mat4(1.0f)};
+    trans = glm::translate(trans, ball.position);
+    trans *= glm::toMat4(ball.rotation);
+    trans = glm::rotate(trans, glm::length(ball.velocity) * 0.1f, perpendicular_velocity);
+    trans = glm::scale(trans, glm::vec3(0.25f));
+
+    ball.transformation = trans;
+
+    const glm::quat rot {glm::angleAxis(glm::length(ball.velocity) * 0.01f, perpendicular_velocity)};
+    ball.rotation = rot * ball.rotation;
+
+    if (ball.position.x < -9.3f || ball.position.x > 9.3f) {
+        ball.velocity.x = -ball.velocity.x;
+    }
+
+    if (ball.position.z < -9.3f) {
+        ball.velocity.z = -ball.velocity.z;
+    }
+
+    if (ball.position.z > 10.0f) {
+        // bb::log_message("Game over!\n");  // TODO
+    }
+}
+
+void LevelScene::on_ball_paddle_collision(BallPaddleCollisionEvent& event) {
+    Ball& ball {balls[event.ball_index]};  // TODO can fail
+
+    ball.position.z = paddle.get_position().z - 1.0f;
+    ball.velocity.z *= -1.0f;
+}
+
+void LevelScene::draw_bounding_box(const Box& box) {
+    static constexpr auto color {glm::vec3(0.0f, 1.0f, 0.0f)};
+    const auto& position {box.position};
+    const auto width {glm::vec3(1.0f, 0.0f, 0.0f) * box.width};
+    const auto height {glm::vec3(0.0f, 1.0f, 0.0f) * box.height};
+    const auto depth {glm::vec3(0.0f, 0.0f, 1.0f) * box.depth};
+
+    debug_add_line(position - width - depth - height, position + width - depth - height, color);
+    debug_add_line(position - width - depth - height, position - width + depth - height, color);
+    debug_add_line(position - width + depth - height, position + width + depth - height, color);
+    debug_add_line(position + width + depth - height, position + width - depth - height, color);
+
+    debug_add_line(position - width - depth + height, position + width - depth + height, color);
+    debug_add_line(position - width - depth + height, position - width + depth + height, color);
+    debug_add_line(position - width + depth + height, position + width + depth + height, color);
+    debug_add_line(position + width + depth + height, position + width - depth + height, color);
+
+    debug_add_line(position - width - depth - height, position - width - depth + height, color);
+    debug_add_line(position + width - depth - height, position + width - depth + height, color);
+    debug_add_line(position + width + depth - height, position + width + depth + height, color);
+    debug_add_line(position - width + depth - height, position - width + depth + height, color);
 }

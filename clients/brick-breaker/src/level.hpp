@@ -1,11 +1,15 @@
 #pragma once
 
+#include <unordered_map>
+
 #include <engine/engine.hpp>
 #include <resmanager/resmanager.hpp>
-#include <glm/glm.hpp>
-#include <glm/gtx/quaternion.hpp>
 
 #include "my_camera_controller.hpp"
+#include "collision.hpp"
+#include "paddle.hpp"
+#include "ball.hpp"
+#include "events.hpp"
 
 struct LevelScene : public bb::Scene {
     LevelScene()
@@ -25,16 +29,20 @@ struct LevelScene : public bb::Scene {
     void load_paddle();
     void load_brick();
 
+    void update_collisions();
+    void update_paddle(Paddle& paddle);
+    void update_ball(Ball& ball);
+    void on_ball_paddle_collision(BallPaddleCollisionEvent& event);
+
+    void draw_bounding_box(const Box& box);
+
     bb::Camera cam;
     MyCameraController cam_controller;
 
     bb::DirectionalLight directional_light;
 
-    glm::vec3 ball_position {};
-    glm::vec3 ball_velocity {};
-    glm::quat ball_rotation {};
-    float paddle_position {};
-    float paddle_velocity {};
+    Paddle paddle;
+    std::unordered_map<unsigned int, Ball> balls;
 
     // Caches to easily store these resources
     resmanager::Cache<bb::VertexArray> cache_vertex_array;

@@ -7,11 +7,11 @@ struct Sphere {
     float radius {};
 };
 
-struct Cube {
+struct Box {
     glm::vec3 position {};  // Lower-left-back
     float width {};  // x
     float height {};  // y
     float depth {};  // z
 };
 
-bool collision_sphere_cube(const Sphere& sphere, const Cube& cube);
+bool collision_sphere_box(const Sphere& sphere, const Box& box);
