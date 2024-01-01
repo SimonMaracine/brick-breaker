@@ -2,8 +2,10 @@ cmake_minimum_required(VERSION 3.20)
 
 add_executable(brick-breaker
     "src/ball.hpp"
+    "src/brick.hpp"
     "src/collision.cpp"
     "src/collision.hpp"
+    "src/constants.hpp"
     "src/events.hpp"
     "src/level.cpp"
     "src/level.hpp"

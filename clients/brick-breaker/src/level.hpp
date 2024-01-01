@@ -1,6 +1,7 @@
 #pragma once
 
 #include <unordered_map>
+#include <vector>
 
 #include <engine/engine.hpp>
 #include <resmanager/resmanager.hpp>
@@ -9,6 +10,7 @@
 #include "collision.hpp"
 #include "paddle.hpp"
 #include "ball.hpp"
+#include "brick.hpp"
 #include "events.hpp"
 
 struct LevelScene : public bb::Scene {
@@ -19,9 +21,9 @@ struct LevelScene : public bb::Scene {
     virtual void on_exit() override;
     virtual void on_update() override;
 
-    void on_window_resized(bb::WindowResizedEvent& event);
-    void on_key_pressed(bb::KeyPressedEvent& event);
-    void on_key_released(bb::KeyReleasedEvent& event);
+    void on_window_resized(const bb::WindowResizedEvent& event);
+    void on_key_pressed(const bb::KeyPressedEvent& event);
+    void on_key_released(const bb::KeyReleasedEvent& event);
 
     void load_shaders();
     void load_platform();
@@ -32,7 +34,9 @@ struct LevelScene : public bb::Scene {
     void update_collisions();
     void update_paddle(Paddle& paddle);
     void update_ball(Ball& ball);
-    void on_ball_paddle_collision(BallPaddleCollisionEvent& event);
+    void on_ball_paddle_collision(const BallPaddleCollisionEvent& event);
+    void on_ball_miss(const BallMissEvent& event);
+    void on_ball_brick_collision(const BallBrickCollisionEvent& event);
 
     void draw_bounding_box(const Box& box);
 
@@ -43,6 +47,7 @@ struct LevelScene : public bb::Scene {
 
     Paddle paddle;
     std::unordered_map<unsigned int, Ball> balls;
+    std::vector<Brick> bricks;
 
     // Caches to easily store these resources
     resmanager::Cache<bb::VertexArray> cache_vertex_array;

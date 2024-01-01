@@ -1,17 +1,11 @@
-#include <unordered_map>
+#include "level.hpp"
 
-#include <engine/engine.hpp>
-#include <resmanager/resmanager.hpp>
+#include <cstddef>
+#include <iterator>
+
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/rotate_vector.hpp>
-
-#include "my_camera_controller.hpp"
-#include "collision.hpp"
-#include "paddle.hpp"
-#include "ball.hpp"
-#include "events.hpp"
-#include "level.hpp"
 
 // https://www.goodtextures.com/image/21296/old-bricks
 // https://stackoverflow.com/questions/39280104/how-to-get-current-camera-position-from-view-matrix
@@ -45,6 +39,8 @@ void LevelScene::on_enter() {
     connect_event<bb::KeyReleasedEvent, &LevelScene::on_key_released>(this);
 
     connect_event<BallPaddleCollisionEvent, &LevelScene::on_ball_paddle_collision>(this);
+    connect_event<BallMissEvent, &LevelScene::on_ball_miss>(this);
+    connect_event<BallBrickCollisionEvent, &LevelScene::on_ball_brick_collision>(this);
 
     load_shaders();
     load_platform();
@@ -55,6 +51,8 @@ void LevelScene::on_enter() {
     paddle = Paddle();
     balls.clear();
     balls[0u] = Ball(0u);
+    bricks.clear();
+    bricks.push_back(Brick(glm::vec3(2.0f, 0.65f, 0.5f)));
 }
 
 void LevelScene::on_exit() {
@@ -90,12 +88,12 @@ void LevelScene::on_update() {
     r_paddle.scale = paddle.get_scale();
     add_renderable(r_paddle);
 
-    Box b_paddle;
-    b_paddle.position = paddle.get_position();
-    b_paddle.width = paddle.get_dimensions().x;
-    b_paddle.height = paddle.get_dimensions().y;
-    b_paddle.depth = paddle.get_dimensions().z;
-    draw_bounding_box(b_paddle);
+    Box b;
+    b.position = paddle.get_position();
+    b.width = paddle.get_dimensions().x;
+    b.height = paddle.get_dimensions().y;
+    b.depth = paddle.get_dimensions().z;
+    draw_bounding_box(b);
 
     for (const auto& [_, ball] : balls) {
         bb::Renderable r_ball;
@@ -104,29 +102,38 @@ void LevelScene::on_update() {
         r_ball.transformation = ball.transformation;
         add_renderable(r_ball);
 
-        debug_add_line(ball.position, ball.position + glm::vec3(ball.size, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        debug_add_line(ball.position, ball.position - glm::vec3(ball.size, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        debug_add_line(ball.position, ball.position + glm::vec3(0.0f, 0.0f, ball.size), glm::vec3(0.0f, 1.0f, 0.0f));
-        debug_add_line(ball.position, ball.position - glm::vec3(0.0f, 0.0f, ball.size), glm::vec3(0.0f, 0.0f, 1.0f));
+        debug_add_line(ball.position, ball.position + glm::vec3(ball.radius, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        debug_add_line(ball.position, ball.position - glm::vec3(ball.radius, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        debug_add_line(ball.position, ball.position + glm::vec3(0.0f, 0.0f, ball.radius), glm::vec3(0.0f, 1.0f, 0.0f));
+        debug_add_line(ball.position, ball.position - glm::vec3(0.0f, 0.0f, ball.radius), glm::vec3(0.0f, 0.0f, 1.0f));
     }
 
-    bb::Renderable r_brick;
-    r_brick.vertex_array = cache_vertex_array["brick1"_H];
-    r_brick.material = cache_material_instance["brick1"_H];
-    r_brick.position = glm::vec3(2.0f, 0.65f, 0.5f);
-    r_brick.scale = 0.25f;
-    add_renderable(r_brick);
+    for (const Brick& brick : bricks) {
+        bb::Renderable r_brick;
+        r_brick.vertex_array = cache_vertex_array["brick1"_H];
+        r_brick.material = cache_material_instance["brick1"_H];
+        r_brick.position = brick.position;
+        r_brick.scale = brick.get_scale();
+        add_renderable(r_brick);
+
+        Box b;
+        b.position = brick.position;
+        b.width = brick.get_dimensions().x;
+        b.height = brick.get_dimensions().y;
+        b.depth = brick.get_dimensions().z;
+        draw_bounding_box(b);
+    }
 
     debug_add_line(glm::vec3(-5.0f, 0.0f, 0.0f), glm::vec3(5.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     debug_add_line(glm::vec3(0.0f, -5.0f, 0.0f), glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     debug_add_line(glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 }
 
-void LevelScene::on_window_resized(bb::WindowResizedEvent& event) {
+void LevelScene::on_window_resized(const bb::WindowResizedEvent& event) {
     cam.set_projection_matrix(event.width, event.height, LENS_FOV, LENS_NEAR, LENS_FAR);
 }
 
-void LevelScene::on_key_pressed(bb::KeyPressedEvent& event) {
+void LevelScene::on_key_pressed(const bb::KeyPressedEvent& event) {
     switch (event.key) {
         case bb::KeyCode::K_LEFT:
             paddle.velocity = -11.0f;
@@ -134,24 +141,24 @@ void LevelScene::on_key_pressed(bb::KeyPressedEvent& event) {
         case bb::KeyCode::K_RIGHT:
             paddle.velocity = 11.0f;
             break;
-        case bb::KeyCode::K_i:
-            balls[0].position.z -= 0.09f;
-            break;
-        case bb::KeyCode::K_k:
-            balls[0].position.z += 0.09f;
-            break;
-        case bb::KeyCode::K_j:
-            balls[0].position.x -= 0.09f;
-            break;
-        case bb::KeyCode::K_l:
-            balls[0].position.x += 0.09f;
-            break;
+        // case bb::KeyCode::K_i:
+        //     balls[0].position.z -= 0.09f;
+        //     break;
+        // case bb::KeyCode::K_k:
+        //     balls[0].position.z += 0.09f;
+        //     break;
+        // case bb::KeyCode::K_j:
+        //     balls[0].position.x -= 0.09f;
+        //     break;
+        // case bb::KeyCode::K_l:
+        //     balls[0].position.x += 0.09f;
+        //     break;
         default:
             break;
     }
 }
 
-void LevelScene::on_key_released(bb::KeyReleasedEvent& event) {
+void LevelScene::on_key_released(const bb::KeyReleasedEvent& event) {
     switch (event.key) {
         case bb::KeyCode::K_LEFT:
         case bb::KeyCode::K_RIGHT:
@@ -349,7 +356,7 @@ void LevelScene::update_collisions() {
     for (auto& [index, ball] : balls) {
         Sphere s;
         s.position = ball.position;
-        s.radius = ball.size;
+        s.radius = ball.radius;
 
         Box b;
         b.position = paddle.get_position();
@@ -361,6 +368,29 @@ void LevelScene::update_collisions() {
             bb::log_message("Collided!\n");
 
             enqueue_event<BallPaddleCollisionEvent>(index);
+        }
+    }
+
+    for (auto& [index, ball] : balls) {
+        for (std::size_t i {0}; i < bricks.size(); i++) {
+            const Brick& brick {bricks[i]};
+
+            Sphere s;
+            s.position = ball.position;
+            s.radius = ball.radius;
+
+            Box b;
+            b.position = brick.position;
+            b.width = brick.get_dimensions().x;
+            b.height = brick.get_dimensions().y;
+            b.depth = brick.get_dimensions().z;
+
+            if (collision_sphere_box(s, b)) {
+                bb::log_message("Collided!\n");
+
+                // This i index may be valid only for a short time
+                enqueue_event<BallBrickCollisionEvent>(index, i);
+            }
         }
     }
 }
@@ -378,7 +408,7 @@ void LevelScene::update_paddle(Paddle& paddle) {
 }
 
 void LevelScene::update_ball(Ball& ball) {
-    // ball.position += ball.velocity * get_delta();
+    ball.position += ball.velocity * get_delta();
 
     const auto perpendicular_velocity {glm::rotate(glm::normalize(ball.velocity), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f))};
 
@@ -386,7 +416,7 @@ void LevelScene::update_ball(Ball& ball) {
     trans = glm::translate(trans, ball.position);
     trans *= glm::toMat4(ball.rotation);
     trans = glm::rotate(trans, glm::length(ball.velocity) * 0.1f, perpendicular_velocity);
-    trans = glm::scale(trans, glm::vec3(ball.size));  // Default ball size should be 1 meter in radius, so size is scale
+    trans = glm::scale(trans, glm::vec3(ball.radius));  // Default ball size should be 1 meter in radius, so radius is scale
 
     ball.transformation = trans;
 
@@ -402,15 +432,35 @@ void LevelScene::update_ball(Ball& ball) {
     }
 
     if (ball.position.z > 10.0f) {
-        // bb::log_message("Game over!\n");  // TODO
+        enqueue_event<BallMissEvent>(ball.index);
     }
 }
 
-void LevelScene::on_ball_paddle_collision(BallPaddleCollisionEvent& event) {
+void LevelScene::on_ball_paddle_collision(const BallPaddleCollisionEvent& event) {
     Ball& ball {balls[event.ball_index]};  // TODO can fail
 
-    ball.position.z = paddle.get_position().z - paddle.get_dimensions().z - ball.size;
+    ball.position.z = paddle.get_position().z - paddle.get_dimensions().z - ball.radius;
     ball.velocity.z *= -1.0f;
+}
+
+void LevelScene::on_ball_miss(const BallMissEvent& event) {
+    Ball& ball {balls[event.ball_index]};  // TODO can fail
+
+    balls.erase(ball.index);
+
+    if (balls.empty()) {
+        bb::log_message("Game over!\n");  // TODO
+    }
+}
+
+void LevelScene::on_ball_brick_collision(const BallBrickCollisionEvent& event) {
+    Ball& ball {balls[event.ball_index]};  // TODO can fail
+
+    bricks.erase(std::next(bricks.cbegin(), event.brick_index));
+
+    if (bricks.empty()) {
+        bb::log_message("Congratulations!\n");  // TODO
+    }
 }
 
 void LevelScene::draw_bounding_box(const Box& box) {
