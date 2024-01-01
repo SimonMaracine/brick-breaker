@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
 add_executable(brick-breaker
-    "src/ball.cpp"
     "src/ball.hpp"
     "src/collision.cpp"
     "src/collision.hpp"
@@ -11,7 +10,6 @@ add_executable(brick-breaker
     "src/main.cpp"
     "src/my_camera_controller.cpp"
     "src/my_camera_controller.hpp"
-    "src/paddle.cpp"
     "src/paddle.hpp"
 )
 

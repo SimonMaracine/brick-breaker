@@ -14,5 +14,7 @@ struct Ball {
     glm::vec3 velocity {2.0f, 0.0f, 3.0f};
     glm::quat rotation {1.0f, 0.0f, 0.0f, 0.0f};
 
+    float size {1.0f};  // Radius
+
     glm::mat4 transformation {1.0f};
 };

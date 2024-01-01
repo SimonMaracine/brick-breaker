@@ -8,7 +8,7 @@ struct Sphere {
 };
 
 struct Box {
-    glm::vec3 position {};  // Lower-left-back
+    glm::vec3 position {};  // Center
     float width {};  // x
     float height {};  // y
     float depth {};  // z

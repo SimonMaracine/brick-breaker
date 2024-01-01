@@ -80,7 +80,6 @@ void LevelScene::on_update() {
     r_platform.vertex_array = cache_vertex_array["platform"_H];
     r_platform.material = cache_material_instance["platform"_H];
     r_platform.rotation.y = glm::radians(90.0f);
-
     add_renderable(r_platform);
 
     bb::Renderable r_paddle;
@@ -89,16 +88,26 @@ void LevelScene::on_update() {
     r_paddle.position = paddle.get_position();
     r_paddle.rotation = paddle.get_rotation();
     r_paddle.scale = paddle.get_scale();
-
     add_renderable(r_paddle);
+
+    Box b_paddle;
+    b_paddle.position = paddle.get_position();
+    b_paddle.width = paddle.get_dimensions().x;
+    b_paddle.height = paddle.get_dimensions().y;
+    b_paddle.depth = paddle.get_dimensions().z;
+    draw_bounding_box(b_paddle);
 
     for (const auto& [_, ball] : balls) {
         bb::Renderable r_ball;
         r_ball.vertex_array = cache_vertex_array["ball"_H];
         r_ball.material = cache_material_instance["ball"_H];
         r_ball.transformation = ball.transformation;
-
         add_renderable(r_ball);
+
+        debug_add_line(ball.position, ball.position + glm::vec3(ball.size, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        debug_add_line(ball.position, ball.position - glm::vec3(ball.size, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        debug_add_line(ball.position, ball.position + glm::vec3(0.0f, 0.0f, ball.size), glm::vec3(0.0f, 1.0f, 0.0f));
+        debug_add_line(ball.position, ball.position - glm::vec3(0.0f, 0.0f, ball.size), glm::vec3(0.0f, 0.0f, 1.0f));
     }
 
     bb::Renderable r_brick;
@@ -106,7 +115,6 @@ void LevelScene::on_update() {
     r_brick.material = cache_material_instance["brick1"_H];
     r_brick.position = glm::vec3(2.0f, 0.65f, 0.5f);
     r_brick.scale = 0.25f;
-
     add_renderable(r_brick);
 
     debug_add_line(glm::vec3(-5.0f, 0.0f, 0.0f), glm::vec3(5.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -125,6 +133,18 @@ void LevelScene::on_key_pressed(bb::KeyPressedEvent& event) {
             break;
         case bb::KeyCode::K_RIGHT:
             paddle.velocity = 11.0f;
+            break;
+        case bb::KeyCode::K_i:
+            balls[0].position.z -= 0.09f;
+            break;
+        case bb::KeyCode::K_k:
+            balls[0].position.z += 0.09f;
+            break;
+        case bb::KeyCode::K_j:
+            balls[0].position.x -= 0.09f;
+            break;
+        case bb::KeyCode::K_l:
+            balls[0].position.x += 0.09f;
             break;
         default:
             break;
@@ -329,7 +349,7 @@ void LevelScene::update_collisions() {
     for (auto& [index, ball] : balls) {
         Sphere s;
         s.position = ball.position;
-        s.radius = 1.0f;
+        s.radius = ball.size;
 
         Box b;
         b.position = paddle.get_position();
@@ -358,7 +378,7 @@ void LevelScene::update_paddle(Paddle& paddle) {
 }
 
 void LevelScene::update_ball(Ball& ball) {
-    ball.position += ball.velocity * get_delta();
+    // ball.position += ball.velocity * get_delta();
 
     const auto perpendicular_velocity {glm::rotate(glm::normalize(ball.velocity), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f))};
 
@@ -366,7 +386,7 @@ void LevelScene::update_ball(Ball& ball) {
     trans = glm::translate(trans, ball.position);
     trans *= glm::toMat4(ball.rotation);
     trans = glm::rotate(trans, glm::length(ball.velocity) * 0.1f, perpendicular_velocity);
-    trans = glm::scale(trans, glm::vec3(0.25f));
+    trans = glm::scale(trans, glm::vec3(ball.size));  // Default ball size should be 1 meter in radius, so size is scale
 
     ball.transformation = trans;
 
@@ -389,7 +409,7 @@ void LevelScene::update_ball(Ball& ball) {
 void LevelScene::on_ball_paddle_collision(BallPaddleCollisionEvent& event) {
     Ball& ball {balls[event.ball_index]};  // TODO can fail
 
-    ball.position.z = paddle.get_position().z - 1.0f;
+    ball.position.z = paddle.get_position().z - paddle.get_dimensions().z - ball.size;
     ball.velocity.z *= -1.0f;
 }
 
