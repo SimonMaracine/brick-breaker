@@ -7,6 +7,7 @@
 
 #include <engine/engine.hpp>
 #include <resmanager/resmanager.hpp>
+#include <glm/glm.hpp>
 
 #include "my_camera_controller.hpp"
 #include "collision.hpp"
@@ -41,6 +42,7 @@ struct LevelScene : public bb::Scene {
     void update_ball(Ball& ball);
     void shoot_balls();
     static std::optional<std::vector<Brick>> load_level(const std::string& file_path);
+    glm::vec2 bounce_ball_off_paddle(const Ball& ball);
     void on_ball_paddle_collision(const BallPaddleCollisionEvent& event);
     void on_ball_miss(const BallMissEvent& event);
     void on_ball_brick_collision(const BallBrickCollisionEvent& event);

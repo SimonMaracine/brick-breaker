@@ -5,7 +5,6 @@
 #include <fstream>
 #include <utility>
 
-#include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtc/random.hpp>
@@ -17,6 +16,10 @@
 // https://stackoverflow.com/questions/39280104/how-to-get-current-camera-position-from-view-matrix
 
 using namespace resmanager::literals;
+
+static constexpr float mapf(float x, float in_min, float in_max, float out_min, float out_max) {
+    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
 
 void LevelScene::on_enter() {
     cam_controller = MyCameraController(
@@ -504,7 +507,7 @@ void LevelScene::update_ball(Ball& ball) {
 void LevelScene::shoot_balls() {
     for (auto& [_, ball] : balls) {
         if (ball.attached_to_paddle) {
-            ball.velocity = glm::vec3(glm::linearRand(-4.0f, 4.0f), 0.0f, -SHOOT_VELOCITY_Z);
+            ball.velocity = glm::vec3(glm::linearRand(-5.0f, 5.0f), 0.0f, -SHOOT_VELOCITY_Z);
             ball.attached_to_paddle = false;
         }
     }
@@ -549,11 +552,27 @@ std::optional<std::vector<Brick>> LevelScene::load_level(const std::string& file
     return std::make_optional(result);
 }
 
+glm::vec2 LevelScene::bounce_ball_off_paddle(const Ball& ball) {
+    // https://www.mathsisfun.com/polar-cartesian-coordinates.html
+
+    const float original_velocity {glm::length(ball.velocity)};
+
+    const float distance {glm::abs(paddle.get_position().x - ball.position.x)};
+    const float theta {mapf(distance, 0.0f, paddle.get_dimensions().x, 0.0f, 70.0f)};
+
+    const float directed_theta {paddle.get_position().x - ball.position.x > 0.0f ? theta + 90.0f : -theta + 90.0f};
+
+    return glm::vec2(original_velocity * glm::cos(glm::radians(directed_theta)), original_velocity * glm::sin(glm::radians(directed_theta)));
+}
+
 void LevelScene::on_ball_paddle_collision(const BallPaddleCollisionEvent& event) {
     Ball& ball {balls[event.ball_index]};  // TODO can fail
 
+    const auto velocity {bounce_ball_off_paddle(ball)};
+
     ball.position.z = paddle.get_position().z - paddle.get_dimensions().z - ball.radius;
-    ball.velocity.z *= -1.0f;
+    ball.velocity.z = -velocity.y;
+    ball.velocity.x = velocity.x;
 }
 
 void LevelScene::on_ball_miss(const BallMissEvent& event) {
