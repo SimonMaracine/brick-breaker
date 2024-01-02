@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
+add_subdirectory(extern/json)
+
 add_executable(brick-breaker
     "src/ball.hpp"
     "src/brick.hpp"
@@ -15,4 +17,4 @@ add_executable(brick-breaker
     "src/paddle.hpp"
 )
 
-target_link_libraries(brick-breaker PRIVATE bb-engine)
+target_link_libraries(brick-breaker PRIVATE bb-engine nlohmann_json)

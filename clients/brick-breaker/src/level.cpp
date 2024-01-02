@@ -2,10 +2,14 @@
 
 #include <cstddef>
 #include <iterator>
+#include <fstream>
+#include <utility>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/rotate_vector.hpp>
+#include <glm/gtc/random.hpp>
+#include <nlohmann/json.hpp>
 
 #include "constants.hpp"
 
@@ -54,7 +58,14 @@ void LevelScene::on_enter() {
     balls.clear();
     balls[0u] = Ball(0u);
     bricks.clear();
-    bricks.push_back(Brick(glm::vec3(2.0f, 0.65f, 0.5f)));
+
+    const auto level {load_level("data/levels/level1.json")};
+
+    if (!level) {
+        bb::log_message("Could not load level\n");
+    } else {
+        bricks = std::move(*level);
+    }
 }
 
 void LevelScene::on_exit() {
@@ -113,9 +124,11 @@ void LevelScene::on_update() {
     }
 
     for (const Brick& brick : bricks) {
+        const auto material_id {resmanager::HashedStr64("brick" + std::to_string(static_cast<int>(brick.type) + 1))};
+
         bb::Renderable r_brick;
         r_brick.vertex_array = cache_vertex_array["brick"_H];
-        r_brick.material = cache_material_instance["brick"_H];
+        r_brick.material = cache_material_instance[material_id];
         r_brick.position = brick.position;
         r_brick.scale = brick.get_scale();
         add_renderable(r_brick);
@@ -176,6 +189,9 @@ void LevelScene::on_key_released(const bb::KeyReleasedEvent& event) {
         case bb::KeyCode::K_LEFT:
         case bb::KeyCode::K_RIGHT:
             paddle.velocity = 0.0f;
+            break;
+        case bb::KeyCode::K_SPACE:
+            shoot_balls();
             break;
         case bb::KeyCode::K_r:
             change_scene("level");
@@ -362,12 +378,30 @@ void LevelScene::load_brick() {
 
     // TODO multiple textures and materials
     bb::TextureSpecification specification;
-    auto texture {cache_texture.load("brick1"_H, "data/textures/brick-texture1.png", specification)};
+    cache_texture.load("brick1"_H, "data/textures/brick-texture1.png", specification);
+    cache_texture.load("brick2"_H, "data/textures/brick-texture2.png", specification);
+    cache_texture.load("brick3"_H, "data/textures/brick-texture3.png", specification);
 
-    auto material_instance {cache_material_instance.load("brick"_H, cache_material["simple_textured"_H])};
-    material_instance->set_texture("u_material.ambient_diffuse"_H, texture, 0);
-    material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.4f));
-    material_instance->set_float("u_material.shininess"_H, 32.0f);
+    {
+        auto material_instance {cache_material_instance.load("brick1"_H, cache_material["simple_textured"_H])};
+        material_instance->set_texture("u_material.ambient_diffuse"_H, cache_texture["brick1"_H], 0);
+        material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.4f));
+        material_instance->set_float("u_material.shininess"_H, 32.0f);
+    }
+
+    {
+        auto material_instance {cache_material_instance.load("brick2"_H, cache_material["simple_textured"_H])};
+        material_instance->set_texture("u_material.ambient_diffuse"_H, cache_texture["brick2"_H], 0);
+        material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.4f));
+        material_instance->set_float("u_material.shininess"_H, 32.0f);
+    }
+
+    {
+        auto material_instance {cache_material_instance.load("brick3"_H, cache_material["simple_textured"_H])};
+        material_instance->set_texture("u_material.ambient_diffuse"_H, cache_texture["brick3"_H], 0);
+        material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.4f));
+        material_instance->set_float("u_material.shininess"_H, 32.0f);
+    }
 }
 
 void LevelScene::update_collisions() {
@@ -416,24 +450,30 @@ void LevelScene::update_collisions() {
 void LevelScene::update_paddle(Paddle& paddle) {
     paddle.position += paddle.velocity * get_delta();
 
-    if (paddle.position < -10.0f) {
-        paddle.position = -10.0f;
+    if (paddle.position < PLATFORM_EDGE_MIN_X) {
+        paddle.position = PLATFORM_EDGE_MIN_X;
     }
 
-    if (paddle.position > 10.0f) {
-        paddle.position = 10.0f;
+    if (paddle.position > PLATFORM_EDGE_MAX_X) {
+        paddle.position = PLATFORM_EDGE_MAX_X;
     }
 }
 
 void LevelScene::update_ball(Ball& ball) {
     ball.position += ball.velocity * get_delta();
 
+    if (ball.attached_to_paddle) {
+        // Override position
+        ball.position.x = paddle.position;
+        ball.position.z = paddle.get_position().z - 1.0f;
+    }
+
     const auto perpendicular_velocity {glm::rotate(glm::normalize(ball.velocity), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f))};
 
     glm::mat4 trans {glm::mat4(1.0f)};
     trans = glm::translate(trans, ball.position);
     trans *= glm::toMat4(ball.rotation);
-    trans = glm::rotate(trans, glm::length(ball.velocity) * 0.1f, perpendicular_velocity);
+    trans = glm::rotate(trans, glm::length(ball.velocity) * 0.1f, perpendicular_velocity);  // TODO
     trans = glm::scale(trans, glm::vec3(ball.radius));  // Default ball size should be 1 meter in radius, so radius is scale
 
     ball.transformation = trans;
@@ -459,6 +499,54 @@ void LevelScene::update_ball(Ball& ball) {
     if (ball.position.z > DEADLINE_Z) {
         enqueue_event<BallMissEvent>(ball.index);
     }
+}
+
+void LevelScene::shoot_balls() {
+    for (auto& [_, ball] : balls) {
+        if (ball.attached_to_paddle) {
+            ball.velocity = glm::vec3(glm::linearRand(-4.0f, 4.0f), 0.0f, -SHOOT_VELOCITY_Z);
+            ball.attached_to_paddle = false;
+        }
+    }
+}
+
+std::optional<std::vector<Brick>> LevelScene::load_level(const std::string& file_path) {
+    std::ifstream file {file_path};
+
+    if (!file.is_open()) {
+        return std::nullopt;
+    }
+
+    std::vector<Brick> result;
+
+    const nlohmann::json root = nlohmann::json::parse(file);
+
+    try {
+        const nlohmann::json& j_bricks {root["bricks"].get<nlohmann::json>()};
+
+        for (const nlohmann::json& j_brick : j_bricks) {
+            const nlohmann::json& position {j_brick["position"].get<nlohmann::json>()};
+            const int type {j_brick["type"].get<int>()};
+
+            const int x {position[0].get<int>()};
+            const int z {position[1].get<int>()};
+
+            if (x < BRICKS_GRID_MIN_X || x > BRICKS_GRID_MAX_X || z < BRICKS_GRID_MIN_Z || z > BRICKS_GRID_MAX_Z) {
+                return std::nullopt;
+            }
+
+            // TODO not best error detection
+            if (type < 0 || type > 2) {
+                return std::nullopt;
+            }
+
+            result.push_back(Brick(x, z, static_cast<BrickType>(type)));
+        }
+    } catch (const nlohmann::json::exception&) {
+        return std::nullopt;
+    }
+
+    return std::make_optional(result);
 }
 
 void LevelScene::on_ball_paddle_collision(const BallPaddleCollisionEvent& event) {

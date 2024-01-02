@@ -2,6 +2,8 @@
 
 #include <unordered_map>
 #include <vector>
+#include <string>
+#include <optional>
 
 #include <engine/engine.hpp>
 #include <resmanager/resmanager.hpp>
@@ -37,6 +39,8 @@ struct LevelScene : public bb::Scene {
     void update_collisions();
     void update_paddle(Paddle& paddle);
     void update_ball(Ball& ball);
+    void shoot_balls();
+    static std::optional<std::vector<Brick>> load_level(const std::string& file_path);
     void on_ball_paddle_collision(const BallPaddleCollisionEvent& event);
     void on_ball_miss(const BallMissEvent& event);
     void on_ball_brick_collision(const BallBrickCollisionEvent& event);
