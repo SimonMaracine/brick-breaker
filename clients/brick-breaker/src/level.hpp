@@ -13,6 +13,9 @@
 #include "brick.hpp"
 #include "events.hpp"
 
+// Quick enable-disable
+#define SHOW_DEBUG_LINES 1
+
 struct LevelScene : public bb::Scene {
     LevelScene()
         : bb::Scene("level") {}

@@ -7,6 +7,8 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
+#include "constants.hpp"
+
 // https://www.goodtextures.com/image/21296/old-bricks
 // https://stackoverflow.com/questions/39280104/how-to-get-current-camera-position-from-view-matrix
 
@@ -88,12 +90,14 @@ void LevelScene::on_update() {
     r_paddle.scale = paddle.get_scale();
     add_renderable(r_paddle);
 
+#if SHOW_DEBUG_LINES
     Box b;
     b.position = paddle.get_position();
     b.width = paddle.get_dimensions().x;
     b.height = paddle.get_dimensions().y;
     b.depth = paddle.get_dimensions().z;
     draw_bounding_box(b);
+#endif
 
     for (const auto& [_, ball] : balls) {
         bb::Renderable r_ball;
@@ -102,31 +106,40 @@ void LevelScene::on_update() {
         r_ball.transformation = ball.transformation;
         add_renderable(r_ball);
 
-        debug_add_line(ball.position, ball.position + glm::vec3(ball.radius, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        debug_add_line(ball.position, ball.position - glm::vec3(ball.radius, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        debug_add_line(ball.position, ball.position + glm::vec3(0.0f, 0.0f, ball.radius), glm::vec3(0.0f, 1.0f, 0.0f));
-        debug_add_line(ball.position, ball.position - glm::vec3(0.0f, 0.0f, ball.radius), glm::vec3(0.0f, 0.0f, 1.0f));
+#if SHOW_DEBUG_LINES
+        debug_add_line(ball.position - glm::vec3(ball.radius, 0.0f, 0.0f), ball.position + glm::vec3(ball.radius, 0.0f, 0.0f), GREEN);
+        debug_add_line(ball.position - glm::vec3(0.0f, 0.0f, ball.radius), ball.position + glm::vec3(0.0f, 0.0f, ball.radius), GREEN);
+#endif
     }
 
     for (const Brick& brick : bricks) {
         bb::Renderable r_brick;
-        r_brick.vertex_array = cache_vertex_array["brick1"_H];
-        r_brick.material = cache_material_instance["brick1"_H];
+        r_brick.vertex_array = cache_vertex_array["brick"_H];
+        r_brick.material = cache_material_instance["brick"_H];
         r_brick.position = brick.position;
         r_brick.scale = brick.get_scale();
         add_renderable(r_brick);
 
+#if SHOW_DEBUG_LINES
         Box b;
         b.position = brick.position;
         b.width = brick.get_dimensions().x;
         b.height = brick.get_dimensions().y;
         b.depth = brick.get_dimensions().z;
         draw_bounding_box(b);
+#endif
     }
 
+#if SHOW_DEBUG_LINES
     debug_add_line(glm::vec3(-5.0f, 0.0f, 0.0f), glm::vec3(5.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     debug_add_line(glm::vec3(0.0f, -5.0f, 0.0f), glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     debug_add_line(glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+
+    debug_add_line(glm::vec3(PLATFORM_EDGE_MIN_X, 0.0f, DEADLINE_Z), glm::vec3(PLATFORM_EDGE_MAX_X, 0.0f, DEADLINE_Z), GREEN);
+    debug_add_line(glm::vec3(PLATFORM_EDGE_MIN_X, 0.0f, PLATFORM_EDGE_MIN_Z), glm::vec3(PLATFORM_EDGE_MAX_X, 0.0f, PLATFORM_EDGE_MIN_Z), GREEN);
+    debug_add_line(glm::vec3(PLATFORM_EDGE_MIN_X, 0.0f, PLATFORM_EDGE_MIN_Z), glm::vec3(PLATFORM_EDGE_MIN_X, 0.0f, DEADLINE_Z), GREEN);
+    debug_add_line(glm::vec3(PLATFORM_EDGE_MAX_X, 0.0f, PLATFORM_EDGE_MIN_Z), glm::vec3(PLATFORM_EDGE_MAX_X, 0.0f, DEADLINE_Z), GREEN);
+#endif
 }
 
 void LevelScene::on_window_resized(const bb::WindowResizedEvent& event) {
@@ -321,9 +334,9 @@ void LevelScene::load_paddle() {
 
 void LevelScene::load_brick() {
     auto mesh {std::make_shared<bb::Mesh>(
-        "data/models/brick1.obj",
-        "Brick1",
-        bb::Mesh::Type::PN
+        "data/models/brick.obj",
+        "Brick",
+        bb::Mesh::Type::PTN
     )};
 
     auto vertex_buffer {std::make_shared<bb::VertexBuffer>(
@@ -336,18 +349,23 @@ void LevelScene::load_brick() {
         mesh->get_indices_size()
     )};
 
-    auto vertex_array {cache_vertex_array.load("brick1"_H)};
+    auto vertex_array {cache_vertex_array.load("brick"_H)};
     vertex_array->configure([&](bb::VertexArray* va) {
         bb::VertexBufferLayout layout;
         layout.add(0, bb::VertexBufferLayout::Float, 3);
-        layout.add(1, bb::VertexBufferLayout::Float, 3);
+        layout.add(1, bb::VertexBufferLayout::Float, 2);
+        layout.add(2, bb::VertexBufferLayout::Float, 3);
 
         va->add_vertex_buffer(vertex_buffer, layout);
         va->add_index_buffer(index_buffer);
     });
 
-    auto material_instance {cache_material_instance.load("brick1"_H, cache_material["simple"_H])};
-    material_instance->set_vec3("u_material.ambient_diffuse"_H, glm::vec3(0.7f, 0.7f, 0.8f));
+    // TODO multiple textures and materials
+    bb::TextureSpecification specification;
+    auto texture {cache_texture.load("brick1"_H, "data/textures/brick-texture1.png", specification)};
+
+    auto material_instance {cache_material_instance.load("brick"_H, cache_material["simple_textured"_H])};
+    material_instance->set_texture("u_material.ambient_diffuse"_H, texture, 0);
     material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.4f));
     material_instance->set_float("u_material.shininess"_H, 32.0f);
 }
@@ -423,15 +441,22 @@ void LevelScene::update_ball(Ball& ball) {
     const glm::quat rot {glm::angleAxis(glm::length(ball.velocity) * 0.01f, perpendicular_velocity)};
     ball.rotation = rot * ball.rotation;
 
-    if (ball.position.x < -9.3f || ball.position.x > 9.3f) {
-        ball.velocity.x = -ball.velocity.x;
+    if (ball.position.x > PLATFORM_EDGE_MAX_X - ball.radius) {
+        ball.position.x = PLATFORM_EDGE_MAX_X - ball.radius;
+        ball.velocity.x *= -1.0f;
     }
 
-    if (ball.position.z < -9.3f) {
-        ball.velocity.z = -ball.velocity.z;
+    if (ball.position.x < PLATFORM_EDGE_MIN_X + ball.radius) {
+        ball.position.x = PLATFORM_EDGE_MIN_X + ball.radius;
+        ball.velocity.x *= -1.0f;
     }
 
-    if (ball.position.z > 10.0f) {
+    if (ball.position.z < PLATFORM_EDGE_MIN_Z + ball.radius) {
+        ball.position.z = PLATFORM_EDGE_MIN_Z + ball.radius;
+        ball.velocity.z *= -1.0f;
+    }
+
+    if (ball.position.z > DEADLINE_Z) {
         enqueue_event<BallMissEvent>(ball.index);
     }
 }
@@ -458,13 +483,15 @@ void LevelScene::on_ball_brick_collision(const BallBrickCollisionEvent& event) {
 
     bricks.erase(std::next(bricks.cbegin(), event.brick_index));
 
+    ball.velocity.z *= -1.0f;  // TODO conditional  // FIXME check side
+
     if (bricks.empty()) {
         bb::log_message("Congratulations!\n");  // TODO
     }
 }
 
 void LevelScene::draw_bounding_box(const Box& box) {
-    static constexpr auto color {glm::vec3(0.0f, 1.0f, 0.0f)};
+    static constexpr auto color {GREEN};
     const auto& position {box.position};
     const auto width {glm::vec3(1.0f, 0.0f, 0.0f) * box.width};
     const auto height {glm::vec3(0.0f, 1.0f, 0.0f) * box.height};
