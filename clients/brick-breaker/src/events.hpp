@@ -13,4 +13,5 @@ struct BallMissEvent {
 struct BallBrickCollisionEvent {
     unsigned int ball_index {};
     std::size_t brick_index {};
+    SphereBoxSide side {};
 };

@@ -443,8 +443,10 @@ void LevelScene::update_collisions() {
             if (collision_sphere_box(s, b)) {
                 bb::log_message("Collided!\n");
 
+                const SphereBoxSide side {sphere_box_side_2d(s, b)};
+
                 // This i index may be valid only for a short time
-                enqueue_event<BallBrickCollisionEvent>(index, i);
+                enqueue_event<BallBrickCollisionEvent>(index, i, side);
             }
         }
     }
@@ -590,7 +592,15 @@ void LevelScene::on_ball_brick_collision(const BallBrickCollisionEvent& event) {
 
     bricks.erase(std::next(bricks.cbegin(), event.brick_index));
 
-    ball.velocity.z *= -1.0f;  // TODO conditional  // FIXME check side
+    // TODO fire ball
+    switch (event.side) {
+        case SphereBoxSide::FrontBack:
+            ball.velocity.z *= -1.0f;
+            break;
+        case SphereBoxSide::LeftRight:
+            ball.velocity.x *= -1.0f;
+            break;
+    }
 
     if (bricks.empty()) {
         bb::log_message("Congratulations!\n");  // TODO

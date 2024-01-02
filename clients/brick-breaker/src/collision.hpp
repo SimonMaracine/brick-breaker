@@ -14,4 +14,10 @@ struct Box {
     float depth {};  // z
 };
 
+enum class SphereBoxSide {
+    FrontBack,
+    LeftRight
+};
+
 bool collision_sphere_box(const Sphere& sphere, const Box& box);
+SphereBoxSide sphere_box_side_2d(const Sphere& sphere, const Box& box);
