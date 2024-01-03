@@ -422,7 +422,9 @@ void LevelScene::update_collisions() {
         if (collision_sphere_box(s, b)) {
             bb::log_message("Collided!\n");
 
-            enqueue_event<BallPaddleCollisionEvent>(index);
+            const SphereBoxSide side {sphere_box_side_2d(s, b)};
+
+            enqueue_event<BallPaddleCollisionEvent>(index, side);
         }
     }
 
@@ -568,6 +570,11 @@ glm::vec2 LevelScene::bounce_ball_off_paddle(const Ball& ball) {
 }
 
 void LevelScene::on_ball_paddle_collision(const BallPaddleCollisionEvent& event) {
+    // Reject side collisions
+    if (event.side != SphereBoxSide::FrontBack) {
+        return;
+    }
+
     Ball& ball {balls[event.ball_index]};  // TODO can fail
 
     const auto velocity {bounce_ball_off_paddle(ball)};

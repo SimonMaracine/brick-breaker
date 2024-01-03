@@ -4,6 +4,7 @@
 
 struct BallPaddleCollisionEvent {
     unsigned int ball_index {};
+    SphereBoxSide side {};
 };
 
 struct BallMissEvent {

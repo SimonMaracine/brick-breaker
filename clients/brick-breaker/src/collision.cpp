@@ -56,7 +56,8 @@ bool collision_sphere_box(const Sphere& sphere, const Box& box) {
 
 SphereBoxSide sphere_box_side_2d(const Sphere& sphere, const Box& box) {
     const glm::vec2 line1 {box.position.x, box.position.z};
-    const glm::vec2 line2 {sphere.position.x, sphere.position.z};
+    glm::vec2 line2 {sphere.position.x, sphere.position.z};
+    line2 += (line2 - line1);  // Enlarge this segment a bit
 
     const glm::vec2 front1 {box.position.x - box.width, box.position.z + box.depth};
     const glm::vec2 front2 {box.position.x + box.width, box.position.z + box.depth};
@@ -77,6 +78,8 @@ SphereBoxSide sphere_box_side_2d(const Sphere& sphere, const Box& box) {
     if (intersection_segments(line1, line2, left1, left2) || intersection_segments(line1, line2, right1, right2)) {
         return SphereBoxSide::LeftRight;
     }
+
+    // FIXME do physics in a separate update function
 
     assert(false);
     return {};  // std::unreachable's only in c++23 :P
