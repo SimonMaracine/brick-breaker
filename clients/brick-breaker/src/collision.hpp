@@ -15,8 +15,10 @@ struct Box {
 };
 
 enum class SphereBoxSide {
-    FrontBack,
-    LeftRight
+    Front,
+    Back,
+    Left,
+    Right
 };
 
 bool collision_sphere_box(const Sphere& sphere, const Box& box);

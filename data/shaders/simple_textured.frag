@@ -74,7 +74,7 @@ vec3 calculate_directional_light() {
 
 vec3 calculate_point_light(int i) {
     const PointLightStruct light = u_point_lights[i];
-    const vec3 color = vec3(texture(u_material.ambient_diffuse, v_texture_coordinate));
+    const vec3 color = vec3(texture(u_material.ambient_diffuse, vec2(v_texture_coordinate.x, 1.0 - v_texture_coordinate.y)));
 
     // Attenuation
     const float dist = length(light.position - v_fragment_position);

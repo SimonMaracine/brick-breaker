@@ -1,7 +1,6 @@
 #pragma once
 
 #include <unordered_map>
-#include <vector>
 #include <string>
 #include <optional>
 
@@ -15,6 +14,7 @@
 #include "ball.hpp"
 #include "brick.hpp"
 #include "events.hpp"
+#include "id_generator.hpp"
 
 // Quick enable-disable
 #define SHOW_DEBUG_LINES 1
@@ -38,10 +38,12 @@ struct LevelScene : public bb::Scene {
     void load_brick();
 
     void update_collisions();
+    void update_bricks();
     void update_paddle(Paddle& paddle);
     void update_ball(Ball& ball);
     void shoot_balls();
-    static std::optional<std::vector<Brick>> load_level(const std::string& file_path);
+    void create_ball();
+    static std::optional<std::unordered_map<unsigned int, Brick>> load_level(const std::string& file_path, IdGenerator& gen);
     glm::vec2 bounce_ball_off_paddle(const Ball& ball);
     void on_ball_paddle_collision(const BallPaddleCollisionEvent& event);
     void on_ball_miss(const BallMissEvent& event);
@@ -54,9 +56,11 @@ struct LevelScene : public bb::Scene {
 
     bb::DirectionalLight directional_light;
 
+    IdGenerator id_gen;
+
     Paddle paddle;
     std::unordered_map<unsigned int, Ball> balls;
-    std::vector<Brick> bricks;
+    std::unordered_map<unsigned int, Brick> bricks;
 
     // Caches to easily store these resources
     resmanager::Cache<bb::VertexArray> cache_vertex_array;

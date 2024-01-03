@@ -9,6 +9,7 @@ add_executable(brick-breaker
     "src/collision.hpp"
     "src/constants.hpp"
     "src/events.hpp"
+    "src/id_generator.hpp"
     "src/level.cpp"
     "src/level.hpp"
     "src/main.cpp"

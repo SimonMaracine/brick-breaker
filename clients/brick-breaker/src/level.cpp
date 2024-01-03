@@ -1,7 +1,5 @@
 #include "level.hpp"
 
-#include <cstddef>
-#include <iterator>
 #include <fstream>
 #include <utility>
 
@@ -12,7 +10,7 @@
 
 #include "constants.hpp"
 
-// https://www.goodtextures.com/image/21296/old-bricks
+// https://www.goodtextures.com/image/19536/wood-bare-0256
 // https://stackoverflow.com/questions/39280104/how-to-get-current-camera-position-from-view-matrix
 
 using namespace resmanager::literals;
@@ -57,12 +55,14 @@ void LevelScene::on_enter() {
     load_paddle();
     load_brick();
 
+    id_gen = IdGenerator();
     paddle = Paddle();
-    balls.clear();
-    balls[0u] = Ball(0u);
-    bricks.clear();
 
-    const auto level {load_level("data/levels/level1.json")};
+    balls.clear();
+    create_ball();
+
+    bricks.clear();
+    const auto level {load_level("data/levels/level1.json", id_gen)};
 
     if (!level) {
         bb::log_message("Could not load level\n");
@@ -81,6 +81,8 @@ void LevelScene::on_update() {
 
     capture(cam, cam_controller.get_position());
     add_light(directional_light);
+
+    update_bricks();
 
     update_paddle(paddle);
 
@@ -126,7 +128,7 @@ void LevelScene::on_update() {
 #endif
     }
 
-    for (const Brick& brick : bricks) {
+    for (const auto& [_, brick] : bricks) {
         const auto material_id {resmanager::HashedStr64("brick" + std::to_string(static_cast<int>(brick.type) + 1))};
 
         bb::Renderable r_brick;
@@ -165,23 +167,11 @@ void LevelScene::on_window_resized(const bb::WindowResizedEvent& event) {
 void LevelScene::on_key_pressed(const bb::KeyPressedEvent& event) {
     switch (event.key) {
         case bb::KeyCode::K_LEFT:
-            paddle.velocity = -11.0f;
+            paddle.velocity = -PADDLE_VELOCITY;
             break;
         case bb::KeyCode::K_RIGHT:
-            paddle.velocity = 11.0f;
+            paddle.velocity = PADDLE_VELOCITY;
             break;
-        // case bb::KeyCode::K_i:
-        //     balls[0].position.z -= 0.09f;
-        //     break;
-        // case bb::KeyCode::K_k:
-        //     balls[0].position.z += 0.09f;
-        //     break;
-        // case bb::KeyCode::K_j:
-        //     balls[0].position.x -= 0.09f;
-        //     break;
-        // case bb::KeyCode::K_l:
-        //     balls[0].position.x += 0.09f;
-        //     break;
         default:
             break;
     }
@@ -267,9 +257,8 @@ void LevelScene::load_platform() {
     });
 
     bb::TextureSpecification specification;
-    specification.format = bb::Format::Rgb8;
-    specification.mipmap_levels = 3;
-    auto texture {cache_texture.load("platform"_H, "data/textures/old-bricks.jpeg", specification)};
+    specification.mipmap_levels = 2;
+    auto texture {cache_texture.load("platform"_H, "data/textures/wood-bare.png", specification)};
 
     auto material_instance {cache_material_instance.load("platform"_H, cache_material["simple_textured"_H])};
     material_instance->set_texture("u_material.ambient_diffuse"_H, texture, 0);
@@ -379,7 +368,6 @@ void LevelScene::load_brick() {
         va->add_index_buffer(index_buffer);
     });
 
-    // TODO multiple textures and materials
     bb::TextureSpecification specification;
     cache_texture.load("brick1"_H, "data/textures/brick-texture1.png", specification);
     cache_texture.load("brick2"_H, "data/textures/brick-texture2.png", specification);
@@ -428,10 +416,8 @@ void LevelScene::update_collisions() {
         }
     }
 
-    for (auto& [index, ball] : balls) {
-        for (std::size_t i {0}; i < bricks.size(); i++) {
-            const Brick& brick {bricks[i]};
-
+    for (const auto& [ball_index, ball] : balls) {
+        for (const auto& [brick_index, brick] : bricks) {
             Sphere s;
             s.position = ball.position;
             s.radius = ball.radius;
@@ -447,10 +433,33 @@ void LevelScene::update_collisions() {
 
                 const SphereBoxSide side {sphere_box_side_2d(s, b)};
 
-                // This i index may be valid only for a short time
-                enqueue_event<BallBrickCollisionEvent>(index, i, side);
+                enqueue_event<BallBrickCollisionEvent>(ball_index, brick_index, side);
             }
         }
+    }
+}
+
+void LevelScene::update_bricks() {
+    for (auto& [_, brick] : bricks) {
+        if (brick.grid.y == 0) {
+            continue;
+        }
+
+        for (const auto& [_, brick_below] : bricks) {
+            // Check if there is a brick below
+            if (brick_below.grid.y == brick.grid.y - 1) {
+                if (brick_below.grid.x == brick.grid.x && brick_below.grid.z == brick.grid.z) {
+                    goto continue_outer;
+                }
+            }
+        }
+
+        // This brick is in the air :P
+        brick.grid.y--;
+        brick.position = brick.grid_to_position(brick.grid);
+
+continue_outer:
+        continue;
     }
 }
 
@@ -517,14 +526,19 @@ void LevelScene::shoot_balls() {
     }
 }
 
-std::optional<std::vector<Brick>> LevelScene::load_level(const std::string& file_path) {
+void LevelScene::create_ball() {
+    const auto index {id_gen.generate()};
+    balls[index] = Ball(index);
+}
+
+std::optional<std::unordered_map<unsigned int, Brick>> LevelScene::load_level(const std::string& file_path, IdGenerator& gen) {
     std::ifstream file {file_path};
 
     if (!file.is_open()) {
         return std::nullopt;
     }
 
-    std::vector<Brick> result;
+    std::unordered_map<unsigned int, Brick> result;
 
     const nlohmann::json root = nlohmann::json::parse(file);
 
@@ -536,18 +550,27 @@ std::optional<std::vector<Brick>> LevelScene::load_level(const std::string& file
             const int type {j_brick["type"].get<int>()};
 
             const int x {position[0].get<int>()};
-            const int z {position[1].get<int>()};
+            const int y {position[1].get<int>()};
+            const int z {position[2].get<int>()};
 
-            if (x < BRICKS_GRID_MIN_X || x > BRICKS_GRID_MAX_X || z < BRICKS_GRID_MIN_Z || z > BRICKS_GRID_MAX_Z) {
+            if (x < BRICKS_GRID_MIN_X || x > BRICKS_GRID_MAX_X) {
                 return std::nullopt;
             }
 
-            // TODO not best error detection
-            if (type < 0 || type > 2) {
+            if (z < BRICKS_GRID_MIN_Z || z > BRICKS_GRID_MAX_Z) {
                 return std::nullopt;
             }
 
-            result.push_back(Brick(x, z, static_cast<BrickType>(type)));
+            if (y < BRICKS_GRID_MIN_Y || y > BRICKS_GRID_MAX_Y) {
+                return std::nullopt;
+            }
+
+            if (type < static_cast<int>(BrickType::FIRST) || type > static_cast<int>(BrickType::LAST)) {
+                return std::nullopt;
+            }
+
+            const auto index {gen.generate()};
+            result[index] = Brick(index, glm::ivec3(x, y, z), static_cast<BrickType>(type));
         }
     } catch (const nlohmann::json::exception&) {
         return std::nullopt;
@@ -570,22 +593,33 @@ glm::vec2 LevelScene::bounce_ball_off_paddle(const Ball& ball) {
 }
 
 void LevelScene::on_ball_paddle_collision(const BallPaddleCollisionEvent& event) {
-    // Reject side collisions
-    if (event.side != SphereBoxSide::FrontBack) {
-        return;
+    Ball& ball {balls.at(event.ball_index)};  // TODO can fail
+
+    switch (event.side) {
+        case SphereBoxSide::Back: {
+            const auto velocity {bounce_ball_off_paddle(ball)};
+
+            ball.position.z = paddle.get_position().z - paddle.get_dimensions().z - ball.radius;
+            ball.velocity.z = -velocity.y;
+            ball.velocity.x = velocity.x;
+
+            break;
+        }
+        case SphereBoxSide::Left:
+            ball.position.x = paddle.get_position().x - paddle.get_dimensions().x - ball.radius;
+            ball.velocity.x *= -1;
+            break;
+        case SphereBoxSide::Right:
+            ball.position.x = paddle.get_position().x + paddle.get_dimensions().x + ball.radius;
+            ball.velocity.x *= -1;
+            break;
+        default:
+            break;
     }
-
-    Ball& ball {balls[event.ball_index]};  // TODO can fail
-
-    const auto velocity {bounce_ball_off_paddle(ball)};
-
-    ball.position.z = paddle.get_position().z - paddle.get_dimensions().z - ball.radius;
-    ball.velocity.z = -velocity.y;
-    ball.velocity.x = velocity.x;
 }
 
 void LevelScene::on_ball_miss(const BallMissEvent& event) {
-    Ball& ball {balls[event.ball_index]};  // TODO can fail
+    Ball& ball {balls.at(event.ball_index)};  // TODO can fail
 
     balls.erase(ball.index);
 
@@ -595,19 +629,31 @@ void LevelScene::on_ball_miss(const BallMissEvent& event) {
 }
 
 void LevelScene::on_ball_brick_collision(const BallBrickCollisionEvent& event) {
-    Ball& ball {balls[event.ball_index]};  // TODO can fail
+    Ball& ball {balls.at(event.ball_index)};  // TODO can fail
 
-    bricks.erase(std::next(bricks.cbegin(), event.brick_index));
+    const Brick& brick {bricks.at(event.brick_index)};
 
     // TODO fire ball
     switch (event.side) {
-        case SphereBoxSide::FrontBack:
+        case SphereBoxSide::Front:
+            ball.position.z = brick.position.z + brick.get_dimensions().z + ball.radius;
             ball.velocity.z *= -1.0f;
             break;
-        case SphereBoxSide::LeftRight:
+        case SphereBoxSide::Back:
+            ball.position.z = brick.position.z - brick.get_dimensions().z - ball.radius;
+            ball.velocity.z *= -1.0f;
+            break;
+        case SphereBoxSide::Left:
+            ball.position.x = brick.position.x - brick.get_dimensions().x - ball.radius;
+            ball.velocity.x *= -1.0f;
+            break;
+        case SphereBoxSide::Right:
+            ball.position.x = brick.position.x + brick.get_dimensions().x + ball.radius;
             ball.velocity.x *= -1.0f;
             break;
     }
+
+    bricks.erase(event.brick_index);
 
     if (bricks.empty()) {
         bb::log_message("Congratulations!\n");  // TODO

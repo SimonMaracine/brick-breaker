@@ -71,12 +71,20 @@ SphereBoxSide sphere_box_side_2d(const Sphere& sphere, const Box& box) {
     const glm::vec2 right1 {box.position.x + box.width, box.position.z - box.depth};
     const glm::vec2 right2 {box.position.x + box.width, box.position.z + box.depth};
 
-    if (intersection_segments(line1, line2, front1, front2) || intersection_segments(line1, line2, back1, back2)) {
-        return SphereBoxSide::FrontBack;
+    if (intersection_segments(line1, line2, front1, front2)) {
+        return SphereBoxSide::Front;
     }
 
-    if (intersection_segments(line1, line2, left1, left2) || intersection_segments(line1, line2, right1, right2)) {
-        return SphereBoxSide::LeftRight;
+    if (intersection_segments(line1, line2, back1, back2)) {
+        return SphereBoxSide::Back;
+    }
+
+    if (intersection_segments(line1, line2, left1, left2)) {
+        return SphereBoxSide::Left;
+    }
+
+    if (intersection_segments(line1, line2, right1, right2)) {
+        return SphereBoxSide::Right;
     }
 
     // FIXME do physics in a separate update function

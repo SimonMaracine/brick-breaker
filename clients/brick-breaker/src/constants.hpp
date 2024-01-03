@@ -12,4 +12,7 @@ inline constexpr float SHOOT_VELOCITY_Z {6.0f};
 inline constexpr int BRICKS_GRID_MIN_X {-4};
 inline constexpr int BRICKS_GRID_MAX_X {4};
 inline constexpr int BRICKS_GRID_MIN_Z {-8};
-inline constexpr int BRICKS_GRID_MAX_Z {8};
+inline constexpr int BRICKS_GRID_MAX_Z {7};
+inline constexpr int BRICKS_GRID_MIN_Y {0};
+inline constexpr int BRICKS_GRID_MAX_Y {4};
+inline constexpr float PADDLE_VELOCITY {12.0f};
