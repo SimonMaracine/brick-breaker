@@ -36,10 +36,20 @@ void LevelScene::on_enter() {
 
     connect_event<bb::KeyPressedEvent, &MyCameraController::on_key_pressed>(cam_controller);
 
-    directional_light.direction = glm::vec3(-0.6f, -1.0f, 0.2f);
-    directional_light.ambient_color = glm::vec3(0.1f);
-    directional_light.diffuse_color = glm::vec3(1.0f);
+    directional_light.direction = glm::normalize(glm::vec3(-0.7f, -1.0f, -0.5f));
+    directional_light.ambient_color = glm::vec3(0.02f);
+    directional_light.diffuse_color = glm::vec3(0.8f);
     directional_light.specular_color = glm::vec3(1.0f);
+
+    lamp_left.position = LAMP_LEFT_POSITION;
+    lamp_left.ambient_color = glm::vec3(0.03f);
+    lamp_left.diffuse_color = glm::vec3(0.9f);
+    lamp_left.specular_color = glm::vec3(1.0f);
+
+    lamp_right.position = LAMP_RIGHT_POSITION;
+    lamp_right.ambient_color = glm::vec3(0.03f);
+    lamp_right.diffuse_color = glm::vec3(0.9f);
+    lamp_right.specular_color = glm::vec3(1.0f);
 
     connect_event<bb::WindowResizedEvent, &LevelScene::on_window_resized>(this);
     connect_event<bb::KeyPressedEvent, &LevelScene::on_key_pressed>(this);
@@ -81,6 +91,8 @@ void LevelScene::on_update() {
 
     capture(cam, cam_controller.get_position());
     add_light(directional_light);
+    add_light(lamp_left);
+    add_light(lamp_right);
 
     update_bricks();
 
@@ -157,6 +169,9 @@ void LevelScene::on_update() {
     debug_add_line(glm::vec3(PLATFORM_EDGE_MIN_X, 0.0f, PLATFORM_EDGE_MIN_Z), glm::vec3(PLATFORM_EDGE_MAX_X, 0.0f, PLATFORM_EDGE_MIN_Z), GREEN);
     debug_add_line(glm::vec3(PLATFORM_EDGE_MIN_X, 0.0f, PLATFORM_EDGE_MIN_Z), glm::vec3(PLATFORM_EDGE_MIN_X, 0.0f, DEADLINE_Z), GREEN);
     debug_add_line(glm::vec3(PLATFORM_EDGE_MAX_X, 0.0f, PLATFORM_EDGE_MIN_Z), glm::vec3(PLATFORM_EDGE_MAX_X, 0.0f, DEADLINE_Z), GREEN);
+
+    debug_add_lamp(LAMP_LEFT_POSITION, glm::vec3(0.7f, 0.7f, 0.1f));
+    debug_add_lamp(LAMP_RIGHT_POSITION, glm::vec3(0.7f, 0.7f, 0.1f));
 #endif
 }
 
@@ -262,7 +277,7 @@ void LevelScene::load_platform() {
 
     auto material_instance {cache_material_instance.load("platform"_H, cache_material["simple_textured"_H])};
     material_instance->set_texture("u_material.ambient_diffuse"_H, texture, 0);
-    material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.35f));
+    material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.25f));
     material_instance->set_float("u_material.shininess"_H, 16.0f);
 }
 
@@ -299,7 +314,7 @@ void LevelScene::load_ball() {
 
     auto material_instance {cache_material_instance.load("ball"_H, cache_material["simple_textured"_H])};
     material_instance->set_texture("u_material.ambient_diffuse"_H, texture, 0);
-    material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.7f));
+    material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.75f));
     material_instance->set_float("u_material.shininess"_H, 64.0f);
 }
 
@@ -376,21 +391,21 @@ void LevelScene::load_brick() {
     {
         auto material_instance {cache_material_instance.load("brick1"_H, cache_material["simple_textured"_H])};
         material_instance->set_texture("u_material.ambient_diffuse"_H, cache_texture["brick1"_H], 0);
-        material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.4f));
+        material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.5f));
         material_instance->set_float("u_material.shininess"_H, 32.0f);
     }
 
     {
         auto material_instance {cache_material_instance.load("brick2"_H, cache_material["simple_textured"_H])};
         material_instance->set_texture("u_material.ambient_diffuse"_H, cache_texture["brick2"_H], 0);
-        material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.4f));
+        material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.5f));
         material_instance->set_float("u_material.shininess"_H, 32.0f);
     }
 
     {
         auto material_instance {cache_material_instance.load("brick3"_H, cache_material["simple_textured"_H])};
         material_instance->set_texture("u_material.ambient_diffuse"_H, cache_texture["brick3"_H], 0);
-        material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.4f));
+        material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.5f));
         material_instance->set_float("u_material.shininess"_H, 32.0f);
     }
 }

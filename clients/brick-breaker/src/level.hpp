@@ -55,6 +55,8 @@ struct LevelScene : public bb::Scene {
     MyCameraController cam_controller;
 
     bb::DirectionalLight directional_light;
+    bb::PointLight lamp_left;
+    bb::PointLight lamp_right;
 
     IdGenerator id_gen;
 
