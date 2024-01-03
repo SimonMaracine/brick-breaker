@@ -72,6 +72,15 @@ namespace bb {
         void capture(const Camera& camera, const glm::vec3& position);
         void add_shader(std::shared_ptr<Shader> shader);
         void add_framebuffer(std::shared_ptr<Framebuffer> framebuffer);
+        void shadows(
+            float left,
+            float right,
+            float bottom,
+            float top,
+            float lens_near,
+            float lens_far,
+            glm::vec3 position
+        );
 
         void add_renderable(const Renderable& renderable);
         void add_light(const DirectionalLight& light);

@@ -30,7 +30,9 @@ namespace bb {
     static constexpr unsigned int DIRECTIONAL_LIGHT_UNIFORM_BLOCK_BINDING {1};
     static constexpr unsigned int VIEW_POSITION_BLOCK_BINDING {2};
     static constexpr unsigned int POINT_LIGHT_BLOCK_BINDING {3};
+    static constexpr unsigned int LIGHT_SPACE_BLOCK_BINDING {4};
     static constexpr std::size_t SHADER_POINT_LIGHTS {4};
+    static constexpr int SHADOW_MAP_UNIT {1};
 
     Renderer::Renderer(int width, int height) {
         OpenGl::enable_depth_test();
@@ -50,6 +52,19 @@ namespace bb {
             storage.scene_framebuffer = std::make_shared<Framebuffer>(specification);
 
             add_framebuffer(storage.scene_framebuffer);
+        }
+
+        {
+            FramebufferSpecification specification;
+            specification.width = 2048;
+            specification.height = 2048;
+            specification.depth_attachment = Attachment(AttachmentFormat::Depth32, AttachmentType::Texture);
+            specification.white_border_for_depth_texture = true;
+            specification.resizable = false;
+
+            storage.shadow_map_framebuffer = std::make_shared<Framebuffer>(specification);
+
+            add_framebuffer(storage.shadow_map_framebuffer);
         }
 
         {
@@ -76,6 +91,12 @@ namespace bb {
             VertexArray::unbind();
         }
 
+        {
+            storage.shadow_shader = std::make_shared<Shader>("data/shaders/shadow.vert", "data/shaders/shadow.frag");
+
+            add_shader(storage.shadow_shader);
+        }
+
         debug_initialize();
     }
 
@@ -96,6 +117,24 @@ namespace bb {
 
     void Renderer::add_framebuffer(std::shared_ptr<Framebuffer> framebuffer) {
         scene_data.framebuffers.push_back(framebuffer);
+    }
+
+    void Renderer::shadows(
+        float left,
+        float right,
+        float bottom,
+        float top,
+        float lens_near,
+        float lens_far,
+        glm::vec3 position
+    ) {
+        scene_list.light_space.left = left;
+        scene_list.light_space.right = right;
+        scene_list.light_space.bottom = bottom;
+        scene_list.light_space.top = top;
+        scene_list.light_space.lens_near = lens_near;
+        scene_list.light_space.lens_far = lens_far;
+        scene_list.light_space.position = position;
     }
 
     void Renderer::add_renderable(const Renderable& renderable) {
@@ -221,6 +260,13 @@ namespace bb {
                 setup_point_light_uniform_buffer(uniform_buffer);
             }
         }
+        {
+            auto uniform_buffer {storage.light_space_uniform_buffer.lock()};
+
+            if (uniform_buffer != nullptr) {
+                setup_light_space_uniform_buffer(uniform_buffer);
+            }
+        }
 
         for (const auto& [_, wuniform_buffer] : storage.uniform_buffers) {
             std::shared_ptr<UniformBuffer> uniform_buffer {wuniform_buffer.lock()};
@@ -237,6 +283,16 @@ namespace bb {
 
         // TODO draw to depth buffer for shadows
 
+        storage.shadow_map_framebuffer->bind();
+
+        OpenGl::clear(OpenGl::Buffers::D);
+        OpenGl::viewport(
+            storage.shadow_map_framebuffer->get_specification().width,
+            storage.shadow_map_framebuffer->get_specification().height
+        );
+
+        draw_renderables_to_depth_buffer();
+
         storage.scene_framebuffer->bind();
 
         OpenGl::clear(OpenGl::Buffers::CD);
@@ -244,6 +300,8 @@ namespace bb {
             storage.scene_framebuffer->get_specification().width,
             storage.scene_framebuffer->get_specification().height
         );
+
+        OpenGl::bind_texture_2d(storage.shadow_map_framebuffer->get_depth_attachment(), SHADOW_MAP_UNIT);
 
         draw_renderables();
         draw_renderables_outlined();
@@ -289,6 +347,9 @@ namespace bb {
                         break;
                     case POINT_LIGHT_BLOCK_BINDING:
                         storage.point_light_uniform_buffer = uniform_buffer;
+                        break;
+                    case LIGHT_SPACE_BLOCK_BINDING:
+                        storage.light_space_uniform_buffer = uniform_buffer;
                         break;
                     default:
                         break;
@@ -409,6 +470,39 @@ namespace bb {
 
     }
 
+    void Renderer::draw_renderables_to_depth_buffer() {
+        storage.shadow_shader->bind();
+
+        for (const Renderable& renderable : scene_list.renderables) {
+            auto vertex_array {renderable.vertex_array.lock()};
+            auto material {renderable.material.lock()};
+
+            if (material->flags & Material::CastShadow) {
+                glm::mat4 matrix;
+
+                if (renderable.transformation) {
+                    matrix = *renderable.transformation;
+                } else {
+                    matrix = glm::mat4(1.0f);
+                    matrix = glm::translate(matrix, renderable.position);
+                    matrix = glm::rotate(matrix, renderable.rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+                    matrix = glm::rotate(matrix, renderable.rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+                    matrix = glm::rotate(matrix, renderable.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+                    matrix = glm::scale(matrix, glm::vec3(renderable.scale));
+                }
+
+                storage.shadow_shader->upload_uniform_mat4("u_model_matrix"_H, matrix);
+
+                vertex_array->bind();
+
+                OpenGl::draw_elements(vertex_array->get_index_buffer()->get_index_count());
+            }
+        }
+
+        // Don't unbind for every model
+        VertexArray::unbind();
+    }
+
     void Renderer::setup_point_light_uniform_buffer(const std::shared_ptr<UniformBuffer> uniform_buffer) {
         // Sort front to back with respect to the camera; lights in the front of the list will be used
         std::sort(
@@ -438,6 +532,27 @@ namespace bb {
             uniform_buffer->set(&light.falloff_linear, resmanager::HashedStr64("u_point_lights[" + index + "].falloff_linear"));
             uniform_buffer->set(&light.falloff_quadratic, resmanager::HashedStr64("u_point_lights[" + index + "].falloff_quadratic"));
         }
+    }
+
+    void Renderer::setup_light_space_uniform_buffer(std::shared_ptr<UniformBuffer> uniform_buffer) {
+        const glm::mat4 projection = glm::ortho(
+            scene_list.light_space.left,
+            scene_list.light_space.right,
+            scene_list.light_space.bottom,
+            scene_list.light_space.top,
+            scene_list.light_space.lens_near,
+            scene_list.light_space.lens_far
+        );
+
+        const glm::mat4 view = glm::lookAt(
+            scene_list.light_space.position,
+            scene_list.directional_light.direction,
+            glm::vec3(0.0f, 1.0f, 0.0f)
+        );
+
+        const glm::mat4 light_space_matrix = projection * view;
+
+        uniform_buffer->set(&light_space_matrix, "u_light_space_matrix"_H);
     }
 
     void Renderer::SceneList::clear() {

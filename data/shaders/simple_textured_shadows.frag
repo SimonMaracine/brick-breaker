@@ -4,12 +4,15 @@ in vec2 v_texture_coordinate;
 in vec3 v_normal;
 in vec3 v_fragment_position;
 
+in vec4 v_fragment_position_light_space;
+
 layout(location = 0) out vec4 fragment_color;
+
+layout(binding = 1) uniform sampler2D u_shadow_map;
 
 struct Material {
     sampler2D ambient_diffuse;
     vec3 specular;
-
     float shininess;
 };
 
@@ -48,6 +51,8 @@ layout(shared, binding = 2) uniform ViewPosition {
 // Lighting calculations are done more efficiently in view space, rather than world space
 // This is called Phong shading
 
+#include "shadows.glsl"
+
 vec3 calculate_directional_light() {
     const vec3 color = vec3(texture(u_material.ambient_diffuse, vec2(v_texture_coordinate.x, 1.0 - v_texture_coordinate.y)));
 
@@ -67,7 +72,8 @@ vec3 calculate_directional_light() {
     const vec3 specular_light = u_material.specular * u_directional_light.specular * specular_strength;
 
     // All together
-    const vec3 result = ambient_light + diffuse_light + specular_light;
+    const float shadow = calculate_shadow(v_fragment_position_light_space, normal, u_directional_light.direction, u_shadow_map);
+    const vec3 result = ambient_light + (diffuse_light + specular_light) * (1.0 - shadow);
 
     return result;
 }

@@ -26,8 +26,9 @@ namespace bb {
         };
 
         enum Flags : unsigned int {
-            Outline = 1 << 0,
-            DisableBackFaceCulling = 1 << 1
+            Outline = 1u << 0,
+            DisableBackFaceCulling = 1u << 1,
+            CastShadow = 1u << 2
         };
 
         Material(std::shared_ptr<Shader> shader, unsigned int flags = 0);

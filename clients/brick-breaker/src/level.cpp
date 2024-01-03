@@ -36,7 +36,7 @@ void LevelScene::on_enter() {
 
     connect_event<bb::KeyPressedEvent, &MyCameraController::on_key_pressed>(cam_controller);
 
-    directional_light.direction = glm::normalize(glm::vec3(-0.7f, -1.0f, -0.5f));
+    directional_light.direction = glm::normalize(glm::vec3(-0.6f, -1.0f, -0.5f));
     directional_light.ambient_color = glm::vec3(0.02f);
     directional_light.diffuse_color = glm::vec3(0.8f);
     directional_light.specular_color = glm::vec3(1.0f);
@@ -93,6 +93,7 @@ void LevelScene::on_update() {
     add_light(directional_light);
     add_light(lamp_left);
     add_light(lamp_right);
+    shadows(-21.0f, 20.0f, -12.0f, 12.0f, 1.0f, 20.0f, directional_light.direction * -10.0f);
 
     update_bricks();
 
@@ -214,7 +215,8 @@ void LevelScene::load_shaders() {
         // This is a generic shader
         auto shader {std::make_shared<bb::Shader>(
             "data/shaders/simple_textured.vert",
-            "data/shaders/simple_textured.frag"
+            "data/shaders/simple_textured.frag",
+            "data/shaders/common"
         )};
 
         add_shader(shader);
@@ -238,6 +240,23 @@ void LevelScene::load_shaders() {
         // And a generic material
         auto material {cache_material.load("simple"_H, shader)};
         material->add_uniform(bb::Material::Uniform::Vec3, "u_material.ambient_diffuse"_H);
+        material->add_uniform(bb::Material::Uniform::Vec3, "u_material.specular"_H);
+        material->add_uniform(bb::Material::Uniform::Float, "u_material.shininess"_H);
+    }
+
+    {
+        // This is also a generic shader
+        auto shader {std::make_shared<bb::Shader>(
+            "data/shaders/simple_textured_shadows.vert",
+            "data/shaders/simple_textured_shadows.frag",
+            "data/shaders/common"
+        )};
+
+        add_shader(shader);
+
+        // And a generic material
+        auto material {cache_material.load("simple_textured_shadows"_H, shader)};
+        material->add_texture("u_material.ambient_diffuse"_H);
         material->add_uniform(bb::Material::Uniform::Vec3, "u_material.specular"_H);
         material->add_uniform(bb::Material::Uniform::Float, "u_material.shininess"_H);
     }
@@ -275,10 +294,11 @@ void LevelScene::load_platform() {
     specification.mipmap_levels = 2;
     auto texture {cache_texture.load("platform"_H, "data/textures/wood-bare.png", specification)};
 
-    auto material_instance {cache_material_instance.load("platform"_H, cache_material["simple_textured"_H])};
+    auto material_instance {cache_material_instance.load("platform"_H, cache_material["simple_textured_shadows"_H])};
     material_instance->set_texture("u_material.ambient_diffuse"_H, texture, 0);
     material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.25f));
     material_instance->set_float("u_material.shininess"_H, 16.0f);
+    material_instance->flags |= bb::Material::CastShadow;
 }
 
 void LevelScene::load_ball() {
@@ -312,10 +332,11 @@ void LevelScene::load_ball() {
     bb::TextureSpecification specification;
     auto texture {cache_texture.load("ball"_H, "data/textures/ball-texture.png", specification)};
 
-    auto material_instance {cache_material_instance.load("ball"_H, cache_material["simple_textured"_H])};
+    auto material_instance {cache_material_instance.load("ball"_H, cache_material["simple_textured_shadows"_H])};
     material_instance->set_texture("u_material.ambient_diffuse"_H, texture, 0);
     material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.75f));
     material_instance->set_float("u_material.shininess"_H, 64.0f);
+    material_instance->flags |= bb::Material::CastShadow;
 }
 
 void LevelScene::load_paddle() {
@@ -349,10 +370,11 @@ void LevelScene::load_paddle() {
     bb::TextureSpecification specification;
     auto texture {cache_texture.load("paddle"_H, "data/textures/paddle-texture.png", specification)};
 
-    auto material_instance {cache_material_instance.load("paddle"_H, cache_material["simple_textured"_H])};
+    auto material_instance {cache_material_instance.load("paddle"_H, cache_material["simple_textured_shadows"_H])};
     material_instance->set_texture("u_material.ambient_diffuse"_H, texture, 0);
     material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.4f));
     material_instance->set_float("u_material.shininess"_H, 32.0f);
+    material_instance->flags |= bb::Material::CastShadow;
 }
 
 void LevelScene::load_brick() {
@@ -389,24 +411,27 @@ void LevelScene::load_brick() {
     cache_texture.load("brick3"_H, "data/textures/brick-texture3.png", specification);
 
     {
-        auto material_instance {cache_material_instance.load("brick1"_H, cache_material["simple_textured"_H])};
+        auto material_instance {cache_material_instance.load("brick1"_H, cache_material["simple_textured_shadows"_H])};
         material_instance->set_texture("u_material.ambient_diffuse"_H, cache_texture["brick1"_H], 0);
         material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.5f));
         material_instance->set_float("u_material.shininess"_H, 32.0f);
+        material_instance->flags |= bb::Material::CastShadow;
     }
 
     {
-        auto material_instance {cache_material_instance.load("brick2"_H, cache_material["simple_textured"_H])};
+        auto material_instance {cache_material_instance.load("brick2"_H, cache_material["simple_textured_shadows"_H])};
         material_instance->set_texture("u_material.ambient_diffuse"_H, cache_texture["brick2"_H], 0);
         material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.5f));
         material_instance->set_float("u_material.shininess"_H, 32.0f);
+        material_instance->flags |= bb::Material::CastShadow;
     }
 
     {
-        auto material_instance {cache_material_instance.load("brick3"_H, cache_material["simple_textured"_H])};
+        auto material_instance {cache_material_instance.load("brick3"_H, cache_material["simple_textured_shadows"_H])};
         material_instance->set_texture("u_material.ambient_diffuse"_H, cache_texture["brick3"_H], 0);
         material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.5f));
         material_instance->set_float("u_material.shininess"_H, 32.0f);
+        material_instance->flags |= bb::Material::CastShadow;
     }
 }
 

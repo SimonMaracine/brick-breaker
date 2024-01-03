@@ -46,6 +46,18 @@ namespace bb {
         application->renderer->add_framebuffer(framebuffer);
     }
 
+    void Scene::shadows(
+        float left,
+        float right,
+        float bottom,
+        float top,
+        float lens_near,
+        float lens_far,
+        glm::vec3 position
+    ) {
+        application->renderer->shadows(left, right, bottom, top, lens_near, lens_far, position);
+    }
+
     void Scene::add_renderable(const Renderable& renderable) {
         application->renderer->add_renderable(renderable);
     }

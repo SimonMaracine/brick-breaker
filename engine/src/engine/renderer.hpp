@@ -32,6 +32,15 @@ namespace bb {
         void capture(const Camera& camera, const glm::vec3& position);
         void add_shader(std::shared_ptr<Shader> shader);
         void add_framebuffer(std::shared_ptr<Framebuffer> framebuffer);
+        void shadows(
+            float left,
+            float right,
+            float bottom,
+            float top,
+            float lens_near,
+            float lens_far,
+            glm::vec3 position
+        );
 
         // 3D API
         void add_renderable(const Renderable& renderable);
@@ -63,13 +72,19 @@ namespace bb {
         void draw_renderables_outlined();
         void draw_renderable_outlined(const Renderable& renderable);
 
+        void draw_renderables_to_depth_buffer();
+
         // Helper functions
-        void setup_point_light_uniform_buffer(const std::shared_ptr<UniformBuffer> uniform_buffer);
+        void setup_point_light_uniform_buffer(std::shared_ptr<UniformBuffer> uniform_buffer);
+        void setup_light_space_uniform_buffer(std::shared_ptr<UniformBuffer> uniform_buffer);
 
         struct {
             std::shared_ptr<Framebuffer> scene_framebuffer;
+            std::shared_ptr<Framebuffer> shadow_map_framebuffer;
 
             std::unique_ptr<Shader> screen_quad_shader;
+            std::shared_ptr<Shader> shadow_shader;
+
             std::unique_ptr<VertexArray> screen_quad_vertex_array;
 
             std::unordered_map<unsigned int, std::weak_ptr<UniformBuffer>> uniform_buffers;
@@ -77,6 +92,7 @@ namespace bb {
             std::weak_ptr<UniformBuffer> directional_light_uniform_buffer;
             std::weak_ptr<UniformBuffer> view_position_uniform_buffer;
             std::weak_ptr<UniformBuffer> point_light_uniform_buffer;
+            std::weak_ptr<UniformBuffer> light_space_uniform_buffer;
         } storage;
 
         PostProcessingContext post_processing_context;
@@ -92,6 +108,16 @@ namespace bb {
             std::vector<Renderable> renderables;
             DirectionalLight directional_light;
             std::vector<PointLight> point_lights;
+
+            struct LightSpace {
+                float left {0.0f};
+                float right {0.0f};
+                float bottom {0.0f};
+                float top {0.0f};
+                float lens_near {1.0f};
+                float lens_far {1.0f};
+                glm::vec3 position {};
+            } light_space;
 
             void clear();
         } scene_list;
