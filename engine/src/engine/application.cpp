@@ -10,7 +10,7 @@
 #include "engine/scene.hpp"
 #include "engine/application.hpp"
 #include "engine/info_and_debug.hpp"
-#include "logging.hpp"
+#include "engine/logging.hpp"
 
 namespace bb {
     Application::Application(const ApplicationProperties& properties) {
@@ -55,7 +55,7 @@ namespace bb {
 
             current_scene->on_update();
 
-            renderer->render(window->get_width(), window->get_height());
+            renderer->render();
 
             window->refresh();
 

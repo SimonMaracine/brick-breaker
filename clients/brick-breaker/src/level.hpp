@@ -32,6 +32,7 @@ struct LevelScene : public bb::Scene {
     void on_key_released(const bb::KeyReleasedEvent& event);
 
     void load_shaders();
+    void load_font();
     void load_platform();
     void load_ball();
     void load_paddle();
@@ -50,9 +51,11 @@ struct LevelScene : public bb::Scene {
     void on_ball_brick_collision(const BallBrickCollisionEvent& event);
 
     void draw_bounding_box(const Box& box);
+    void draw_fps();
 
     bb::Camera cam;
     MyCameraController cam_controller;
+    bb::Camera2D cam_2d;
 
     bb::DirectionalLight directional_light;
     bb::PointLight lamp_left;
@@ -69,4 +72,5 @@ struct LevelScene : public bb::Scene {
     resmanager::Cache<bb::MaterialInstance> cache_material_instance;
     resmanager::Cache<bb::Texture> cache_texture;
     resmanager::Cache<bb::Material> cache_material;
+    resmanager::Cache<bb::Font> cache_font;
 };

@@ -36,6 +36,8 @@ void LevelScene::on_enter() {
 
     connect_event<bb::KeyPressedEvent, &MyCameraController::on_key_pressed>(cam_controller);
 
+    cam_2d.set_projection_matrix(0.0f, static_cast<float>(get_width()), 0.0f, static_cast<float>(get_height()));
+
     directional_light.direction = glm::normalize(glm::vec3(-0.6f, -1.0f, -0.5f));
     directional_light.ambient_color = glm::vec3(0.02f);
     directional_light.diffuse_color = glm::vec3(0.8f);
@@ -60,6 +62,7 @@ void LevelScene::on_enter() {
     connect_event<BallBrickCollisionEvent, &LevelScene::on_ball_brick_collision>(this);
 
     load_shaders();
+    load_font();
     load_platform();
     load_ball();
     load_paddle();
@@ -90,6 +93,7 @@ void LevelScene::on_update() {
     cam_controller.update_camera(get_delta());
 
     capture(cam, cam_controller.get_position());
+    capture(cam_2d);
     add_light(directional_light);
     add_light(lamp_left);
     add_light(lamp_right);
@@ -173,11 +177,14 @@ void LevelScene::on_update() {
 
     debug_add_lamp(LAMP_LEFT_POSITION, glm::vec3(0.7f, 0.7f, 0.1f));
     debug_add_lamp(LAMP_RIGHT_POSITION, glm::vec3(0.7f, 0.7f, 0.1f));
+
+    draw_fps();
 #endif
 }
 
 void LevelScene::on_window_resized(const bb::WindowResizedEvent& event) {
     cam.set_projection_matrix(event.width, event.height, LENS_FOV, LENS_NEAR, LENS_FAR);
+    cam_2d.set_projection_matrix(0.0f, static_cast<float>(get_width()), 0.0f, static_cast<float>(get_height()));
 }
 
 void LevelScene::on_key_pressed(const bb::KeyPressedEvent& event) {
@@ -260,6 +267,14 @@ void LevelScene::load_shaders() {
         material->add_uniform(bb::Material::Uniform::Vec3, "u_material.specular"_H);
         material->add_uniform(bb::Material::Uniform::Float, "u_material.shininess"_H);
     }
+}
+
+void LevelScene::load_font() {
+    auto font {cache_font.load("simple"_H, "data/fonts/CodeNewRoman/code-new-roman.regular.ttf", 40.0f, 8, 180, 40, 512)};
+
+    font->begin_baking();
+    font->bake_ascii();
+    font->end_baking();
 }
 
 void LevelScene::load_platform() {
@@ -721,4 +736,15 @@ void LevelScene::draw_bounding_box(const Box& box) {
     debug_add_line(position + width - depth - height, position + width - depth + height, color);
     debug_add_line(position + width + depth - height, position + width + depth + height, color);
     debug_add_line(position - width + depth - height, position - width + depth + height, color);
+}
+
+void LevelScene::draw_fps() {
+    bb::Text text;
+    text.font = cache_font["simple"_H];
+    text.string = std::to_string(get_fps()) + " FPS";
+    text.position = glm::vec2(2.0f, 2.0f);
+    text.color = glm::vec3(0.9f);
+    text.scale = 0.6f;
+
+    add_text(text);
 }

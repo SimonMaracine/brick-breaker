@@ -38,6 +38,10 @@ namespace bb {
         application->renderer->capture(camera, position);
     }
 
+    void Scene::capture(const Camera2D& camera_2d) {
+        application->renderer->capture(camera_2d);
+    }
+
     void Scene::add_shader(std::shared_ptr<Shader> shader) {
         application->renderer->add_shader(shader);
     }
@@ -68,6 +72,10 @@ namespace bb {
 
     void Scene::add_light(const PointLight& light) {
         application->renderer->add_light(light);
+    }
+
+    void Scene::add_text(const Text& text) {
+        application->renderer->add_text(text);
     }
 
     void Scene::debug_add_line(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& color) {

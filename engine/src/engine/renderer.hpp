@@ -17,7 +17,9 @@ namespace bb {
     class VertexArray;
     class VertexBuffer;
     class UniformBuffer;
-    class Camera;
+    struct Camera;
+    struct Camera2D;
+    class Font;
 
     class Renderer {
     public:
@@ -30,6 +32,7 @@ namespace bb {
         Renderer& operator=(Renderer&&) = delete;
 
         void capture(const Camera& camera, const glm::vec3& position);
+        void capture(const Camera2D& camera_2d);
         void add_shader(std::shared_ptr<Shader> shader);
         void add_framebuffer(std::shared_ptr<Framebuffer> framebuffer);
         void shadows(
@@ -47,6 +50,9 @@ namespace bb {
         void add_light(const DirectionalLight& light);
         void add_light(const PointLight& light);
 
+        // 2D API
+        void add_text(const Text& text);
+
         // Debug API
         void debug_add_line(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& color);
         void debug_add_lines(const std::vector<glm::vec3>& points, const glm::vec3& color);
@@ -54,7 +60,7 @@ namespace bb {
         void debug_add_point(const glm::vec3& p, const glm::vec3& color);
         void debug_add_lamp(const glm::vec3& position, const glm::vec3& color);
     private:
-        void render(int width, int height);
+        void render();
         void prerender_setup();
         void postrender_setup();
 
@@ -74,6 +80,9 @@ namespace bb {
 
         void draw_renderables_to_depth_buffer();
 
+        void draw_strings();
+        void draw_string(const Text& text);
+
         // Helper functions
         void setup_point_light_uniform_buffer(std::shared_ptr<UniformBuffer> uniform_buffer);
         void setup_light_space_uniform_buffer(std::shared_ptr<UniformBuffer> uniform_buffer);
@@ -84,6 +93,7 @@ namespace bb {
 
             std::unique_ptr<Shader> screen_quad_shader;
             std::shared_ptr<Shader> shadow_shader;
+            std::unique_ptr<Shader> text_shader;
 
             std::unique_ptr<VertexArray> screen_quad_vertex_array;
 
@@ -104,10 +114,15 @@ namespace bb {
             glm::vec3 position {};
         } camera;
 
+        struct {
+            glm::mat4 projection_view_matrix {glm::mat4(1.0f)};
+        } camera_2d;
+
         struct SceneList {
             std::vector<Renderable> renderables;
             DirectionalLight directional_light;
             std::vector<PointLight> point_lights;
+            std::vector<Text> strings;
 
             struct LightSpace {
                 float left {0.0f};

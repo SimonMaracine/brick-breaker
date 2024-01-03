@@ -10,7 +10,8 @@
 #include "engine/events.hpp"
 
 namespace bb {
-    class Camera;
+    struct Camera;
+    struct Camera2D;
     class Shader;
     class Framebuffer;
     class Renderable;
@@ -70,6 +71,7 @@ namespace bb {
         }
 
         void capture(const Camera& camera, const glm::vec3& position);
+        void capture(const Camera2D& camera_2d);
         void add_shader(std::shared_ptr<Shader> shader);
         void add_framebuffer(std::shared_ptr<Framebuffer> framebuffer);
         void shadows(
@@ -85,6 +87,8 @@ namespace bb {
         void add_renderable(const Renderable& renderable);
         void add_light(const DirectionalLight& light);
         void add_light(const PointLight& light);
+
+        void add_text(const Text& text);
 
         void debug_add_line(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& color);
         void debug_add_lines(const std::vector<glm::vec3>& points, const glm::vec3& color);

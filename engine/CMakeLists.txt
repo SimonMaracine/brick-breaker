@@ -6,6 +6,9 @@ target_include_directories(glad PUBLIC "extern/glad/include")
 add_library(stb STATIC "extern/stb_include/stb_include.c" "extern/stb_truetype/stb_truetype.c")
 target_include_directories(stb PUBLIC "extern/stb_include" "extern/stb_truetype")
 
+add_library(utfcpp INTERFACE)
+target_include_directories(utfcpp INTERFACE "extern/utfcpp/source")
+
 set(BUILD_SHARED_LIBS OFF)
 set(SDL_SHARED OFF)
 set(SDL_STATIC ON)
@@ -32,11 +35,14 @@ add_library(bb-engine
     "src/engine/application.hpp"
     "src/engine/buffer.cpp"
     "src/engine/buffer.hpp"
+    "src/engine/camera_2d.hpp"
     "src/engine/camera_controller.hpp"
     "src/engine/camera.cpp"
     "src/engine/camera.hpp"
     "src/engine/engine.hpp"
     "src/engine/events.hpp"
+    "src/engine/font.cpp"
+    "src/engine/font.hpp"
     "src/engine/framebuffer.cpp"
     "src/engine/framebuffer.hpp"
     "src/engine/info_and_debug.cpp"
@@ -79,6 +85,7 @@ target_link_libraries(bb-engine PRIVATE
     SDL2_image::SDL2_image-static
     assimp::assimp
     stb
+    utfcpp
 )
 
 target_link_libraries(bb-engine PUBLIC
@@ -99,3 +106,5 @@ endif()
 
 target_compile_features(bb-engine PRIVATE cxx_std_17)
 set_target_properties(bb-engine PROPERTIES CXX_EXTENSIONS OFF)
+
+target_compile_definitions(bb-engine PRIVATE "UTF_CPP_CPLUSPLUS=201703")

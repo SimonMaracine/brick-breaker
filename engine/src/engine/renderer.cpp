@@ -20,8 +20,10 @@
 #include "engine/opengl.hpp"
 #include "engine/post_processing.hpp"
 #include "engine/camera.hpp"
+#include "engine/camera_2d.hpp"
 #include "engine/renderable.hpp"
 #include "engine/light.hpp"
+#include "engine/font.hpp"
 
 using namespace resmanager::literals;
 
@@ -35,6 +37,7 @@ namespace bb {
     static constexpr int SHADOW_MAP_UNIT {1};
 
     Renderer::Renderer(int width, int height) {
+        OpenGl::initialize_default();
         OpenGl::enable_depth_test();
         OpenGl::clear_color(0.0f, 0.0f, 0.0f);
 
@@ -97,6 +100,10 @@ namespace bb {
             add_shader(storage.shadow_shader);
         }
 
+        {
+            storage.text_shader = std::make_unique<Shader>("data/shaders/text.vert", "data/shaders/text.frag");
+        }
+
         debug_initialize();
     }
 
@@ -109,6 +116,10 @@ namespace bb {
         this->camera.projection_matrix = camera.projection_matrix;
         this->camera.projection_view_matrix = camera.projection_view_matrix;
         this->camera.position = position;
+    }
+
+    void Renderer::capture(const Camera2D& camera_2d) {
+        this->camera_2d.projection_view_matrix = camera_2d.projection_matrix;
     }
 
     void Renderer::add_shader(std::shared_ptr<Shader> shader) {
@@ -147,6 +158,10 @@ namespace bb {
 
     void Renderer::add_light(const PointLight& light) {
         scene_list.point_lights.push_back(light);
+    }
+
+    void Renderer::add_text(const Text& text) {
+        scene_list.strings.push_back(text);
     }
 
     void Renderer::debug_add_line(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& color) {
@@ -226,7 +241,7 @@ namespace bb {
         }
     }
 
-    void Renderer::render(int width, int height) {
+    void Renderer::render() {
         // TODO pre-render setup
 
         {
@@ -308,6 +323,9 @@ namespace bb {
 
         // Do post processing and render the final 3D image to the screen
         end_rendering();
+
+        // Render 2D stuff
+        draw_strings();
 
         scene_list.clear();
 
@@ -499,8 +517,51 @@ namespace bb {
             }
         }
 
-        // Don't unbind for every model
+        // Don't unbind for every renderable
         VertexArray::unbind();
+    }
+
+    void Renderer::draw_strings() {
+        storage.text_shader->bind();
+
+        OpenGl::disable_depth_test();
+
+        for (const auto& text : scene_list.strings) {
+            draw_string(text);
+        }
+
+        OpenGl::enable_depth_test();
+
+        VertexArray::unbind();
+    }
+
+    void Renderer::draw_string(const Text& text) {
+        static std::vector<float> buffer;
+        buffer.clear();
+
+        text.font->render(text.string, buffer);
+        text.font->update_data(buffer.data(), sizeof(float) * buffer.size());
+
+        glm::mat4 matrix {glm::mat4(1.0f)};
+        matrix = glm::translate(matrix, glm::vec3(text.position, 0.0f));
+        matrix = glm::scale(matrix, glm::vec3(text.scale, text.scale, 1.0f));
+        matrix = glm::scale(matrix, glm::vec3(text.scale, text.scale, 1.0f));
+
+        storage.text_shader->upload_uniform_mat4("u_model_matrix"_H, matrix);
+        storage.text_shader->upload_uniform_vec3("u_color"_H, text.color);
+        storage.text_shader->upload_uniform_mat4("u_projection_matrix"_H, camera_2d.projection_view_matrix);
+
+        const float border_width = text.shadows ? 0.3f : 0.0f;
+        const float offset = text.shadows ? -0.003f : 0.0f;
+
+        storage.text_shader->upload_uniform_float("u_border_width"_H, border_width);
+        storage.text_shader->upload_uniform_vec2("u_offset"_H, glm::vec2(offset, offset));
+
+        text.font->get_vertex_array()->bind();
+
+        OpenGl::bind_texture_2d(text.font->get_bitmap()->get_id(), 0);
+
+        OpenGl::draw_arrays(text.font->get_vertex_count());
     }
 
     void Renderer::setup_point_light_uniform_buffer(const std::shared_ptr<UniformBuffer> uniform_buffer) {
@@ -559,6 +620,8 @@ namespace bb {
         renderables.clear();
         directional_light = {};
         point_lights.clear();
+        strings.clear();
+        light_space = {};
     }
 
     void Renderer::debug_initialize() {
