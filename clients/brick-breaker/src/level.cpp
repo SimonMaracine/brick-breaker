@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <utility>
+#include <cassert>
 
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/rotate_vector.hpp>
@@ -87,8 +88,9 @@ void LevelScene::on_enter() {
         bricks = std::move(*level);
     }
 
-    lives = 3;
+    lives = 3u;
     score = 0;
+    game_over = GameOver::None;
 }
 
 void LevelScene::on_exit() {
@@ -126,7 +128,7 @@ void LevelScene::on_update() {
         add_renderable(r_platform);
     }
 
-    if (lives > 0) {
+    if (game_over == GameOver::None) {
         bb::Renderable r_paddle;
         r_paddle.vertex_array = cache_vertex_array["paddle"_H];
         r_paddle.material = cache_material_instance["paddle"_H];
@@ -143,19 +145,19 @@ void LevelScene::on_update() {
         b.depth = paddle.get_dimensions().z;
         draw_bounding_box(b);
 #endif
-    }
 
-    for (const auto& [_, ball] : balls) {
-        bb::Renderable r_ball;
-        r_ball.vertex_array = cache_vertex_array["ball"_H];
-        r_ball.material = cache_material_instance["ball"_H];
-        r_ball.transformation = ball.transformation;
-        add_renderable(r_ball);
+        for (const auto& [_, ball] : balls) {
+            bb::Renderable r_ball;
+            r_ball.vertex_array = cache_vertex_array["ball"_H];
+            r_ball.material = cache_material_instance["ball"_H];
+            r_ball.transformation = ball.transformation;
+            add_renderable(r_ball);
 
 #if SHOW_DEBUG_RENDERING
-        debug_add_line(ball.get_position() - glm::vec3(ball.radius, 0.0f, 0.0f), ball.get_position() + glm::vec3(ball.radius, 0.0f, 0.0f), GREEN);
-        debug_add_line(ball.get_position() - glm::vec3(0.0f, 0.0f, ball.radius), ball.get_position() + glm::vec3(0.0f, 0.0f, ball.radius), GREEN);
+            debug_add_line(ball.get_position() - glm::vec3(ball.radius, 0.0f, 0.0f), ball.get_position() + glm::vec3(ball.radius, 0.0f, 0.0f), GREEN);
+            debug_add_line(ball.get_position() - glm::vec3(0.0f, 0.0f, ball.radius), ball.get_position() + glm::vec3(0.0f, 0.0f, ball.radius), GREEN);
 #endif
+        }
     }
 
     for (const auto& [_, brick] : bricks) {
@@ -210,9 +212,22 @@ void LevelScene::on_update() {
         add_text(text);
     }
 
-    if (lives == 0) {
-        const auto scale {1.8f};
-        const auto string {"Game Over"};
+    if (game_over != GameOver::None) {
+        const char* string {nullptr};
+
+        switch (game_over) {
+            case GameOver::Lost:
+                string = "Game Over";
+                break;
+            case GameOver::Won:
+                string = "Congratulations";
+                break;
+            default:
+                assert(false);
+                break;
+        }
+
+        const auto scale {2.0f};
         const auto [width, height] {data.basic_font->get_string_size(string, scale)};
 
         bb::Text text;
@@ -743,6 +758,7 @@ void LevelScene::on_ball_miss(const BallMissEvent& event) {
 
         if (lives == 0) {
             bb::log_message("Game over!\n");
+            game_over = GameOver::Lost;
         } else {
             paddle = Paddle();
             create_ball();
@@ -780,7 +796,8 @@ void LevelScene::on_ball_brick_collision(const BallBrickCollisionEvent& event) {
     bricks.erase(event.brick_index);
 
     if (bricks.empty()) {
-        bb::log_message("Congratulations!\n");  // TODO
+        bb::log_message("Congratulations!\n");
+        game_over = GameOver::Won;
     }
 }
 

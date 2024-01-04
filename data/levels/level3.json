@@ -1,0 +1,81 @@
+{
+    "name": "Heap",
+    "bricks": [
+        {
+            "position": [0, 0, 0],
+            "type": 0
+        },
+        {
+            "position": [1, 0, 0],
+            "type": 2
+        },
+        {
+            "position": [2, 0, 0],
+            "type": 2
+        },
+        {
+            "position": [-1, 0, 0],
+            "type": 2
+        },
+        {
+            "position": [-2, 0, 0],
+            "type": 2
+        },
+        {
+            "position": [0, 0, 1],
+            "type": 2
+        },
+        {
+            "position": [1, 0, 1],
+            "type": 2
+        },
+        {
+            "position": [-1, 0, 1],
+            "type": 2
+        },
+        {
+            "position": [0, 0, -1],
+            "type": 2
+        },
+        {
+            "position": [1, 0, -1],
+            "type": 2
+        },
+        {
+            "position": [-1, 0, -1],
+            "type": 2
+        },
+        {
+            "position": [0, 0, -2],
+            "type": 2
+        },
+        {
+            "position": [0, 0, 2],
+            "type": 2
+        },
+        {
+            "position": [0, 1, 0],
+            "type": 1
+        },
+        {
+            "position": [1, 1, 0],
+            "type": 0
+        },
+        {
+            "position": [-1, 1, 0],
+            "type": 0
+        },
+        {
+            "position": [0, 1, 1],
+            "type": 0
+        },
+        {
+            "position": [0, 1, -1],
+            "type": 0
+        },
+        {
+            "position": [0, 2, 0],
+            "type": 1
+        }
+    ]
+}

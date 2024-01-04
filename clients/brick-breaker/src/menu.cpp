@@ -110,10 +110,10 @@ void Menu::on_key_released(const bb::KeyReleasedEvent& event) {
 
     switch (event.key) {
         case bb::KeyCode::K_UP:
-            level_index = glm::max(level_index - 1, 0);
+            level_index = level_index - 1 < 0 ? static_cast<int>(level_paths.size() - 1u) : level_index - 1;
             break;
         case bb::KeyCode::K_DOWN:
-            level_index = glm::min(level_index + 1, static_cast<int>(level_paths.size() - 1));
+            level_index = (level_index + 1) % static_cast<int>(level_paths.size());
             break;
         case bb::KeyCode::K_RETURN:
             data.selected_level = level_paths.at(level_index).first;

@@ -69,6 +69,12 @@ struct LevelScene : public bb::Scene {
     unsigned int lives {};
     int score {};
 
+    enum class GameOver {
+        None,
+        Lost,
+        Won
+    } game_over;
+
     // Caches to easily store these resources
     resmanager::Cache<bb::VertexArray> cache_vertex_array;
     resmanager::Cache<bb::MaterialInstance> cache_material_instance;
