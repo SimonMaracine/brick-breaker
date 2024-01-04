@@ -2,7 +2,7 @@
 
 #include <glm/glm.hpp>
 
-inline constexpr float GROUND_LEVEL {0.65f};
+inline constexpr float GROUND_LEVEL {0.307f};
 inline constexpr float DEADLINE_Z {10.55f};
 inline constexpr float PLATFORM_EDGE_MIN_X {-9.8f};
 inline constexpr float PLATFORM_EDGE_MAX_X {9.8f};

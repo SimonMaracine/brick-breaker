@@ -545,7 +545,6 @@ namespace bb {
         glm::mat4 matrix {glm::mat4(1.0f)};
         matrix = glm::translate(matrix, glm::vec3(text.position, 0.0f));
         matrix = glm::scale(matrix, glm::vec3(text.scale, text.scale, 1.0f));
-        matrix = glm::scale(matrix, glm::vec3(text.scale, text.scale, 1.0f));
 
         storage.text_shader->upload_uniform_mat4("u_model_matrix"_H, matrix);
         storage.text_shader->upload_uniform_vec3("u_color"_H, text.color);

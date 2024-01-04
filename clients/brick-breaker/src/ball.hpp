@@ -5,19 +5,31 @@
 
 #include "constants.hpp"
 
-struct Ball {
+class Ball {
+public:
     Ball() = default;
     Ball(unsigned int index)
         : index(index) {}
 
-    unsigned int index {};
-    bool attached_to_paddle {true};
+    glm::vec3 get_position() const { return glm::vec3(position.x, GROUND_LEVEL + radius, position.z); }
+    unsigned int get_index() const { return index; }
 
-    glm::vec3 position {0.0f, GROUND_LEVEL, 0.0f};
+    void set_position_x(float position) {
+        this->position.x = position;
+    }
+
+    void set_position_z(float position) {
+        this->position.z = position;
+    }
+
     glm::vec3 velocity {0.0f, 0.0f, 0.01f};  // Velocity must never be zero or else it completely messes up the transformation
     glm::quat rotation {1.0f, 0.0f, 0.0f, 0.0f};
 
     float radius {0.25f};
+    bool attached_to_paddle {true};
 
     glm::mat4 transformation {1.0f};
+private:
+    unsigned int index {};
+    glm::vec3 position {};
 };

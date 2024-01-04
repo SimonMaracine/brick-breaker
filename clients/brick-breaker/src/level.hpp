@@ -17,7 +17,7 @@
 #include "id_generator.hpp"
 
 // Quick enable-disable
-#define SHOW_DEBUG_LINES 1
+#define SHOW_DEBUG_RENDERING 1
 
 struct LevelScene : public bb::Scene {
     LevelScene()
