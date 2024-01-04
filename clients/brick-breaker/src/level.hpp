@@ -32,7 +32,6 @@ struct LevelScene : public bb::Scene {
     void on_key_released(const bb::KeyReleasedEvent& event);
 
     void load_shaders();
-    void load_font();
     void load_platform();
     void load_ball();
     void load_paddle();
@@ -67,10 +66,12 @@ struct LevelScene : public bb::Scene {
     std::unordered_map<unsigned int, Ball> balls;
     std::unordered_map<unsigned int, Brick> bricks;
 
+    unsigned int lives {};
+    int score {};
+
     // Caches to easily store these resources
     resmanager::Cache<bb::VertexArray> cache_vertex_array;
     resmanager::Cache<bb::MaterialInstance> cache_material_instance;
     resmanager::Cache<bb::Texture> cache_texture;
     resmanager::Cache<bb::Material> cache_material;
-    resmanager::Cache<bb::Font> cache_font;
 };

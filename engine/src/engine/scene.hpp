@@ -45,6 +45,11 @@ namespace bb {
         double get_fps() const;
         void set_vsync(bool enabled);
 
+        template<typename T>
+        T& user_data() {
+            return *static_cast<T*>(application->user_data);
+        }
+
         template<typename E, typename... Args>
         void enqueue_event(Args&&... args) {
             application->events.template enqueue<E>(std::forward<Args>(args)...);

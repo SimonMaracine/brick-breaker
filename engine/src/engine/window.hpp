@@ -7,9 +7,18 @@ struct SDL_Window;
 namespace bb {
     class Application;
 
+    struct WindowProperties {
+        int width {};
+        int height {};
+        std::string title;
+        bool fullscreen {};
+        int min_width {};
+        int min_height {};
+    };
+
     class Window {
     public:
-        Window(int width, int height, const std::string& title, bool fullscreen, Application* application);
+        Window(const WindowProperties& properties, Application* application);
         ~Window();
 
         Window(const Window&) = delete;

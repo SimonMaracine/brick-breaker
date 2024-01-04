@@ -9,6 +9,7 @@
 #include <nlohmann/json.hpp>
 
 #include "constants.hpp"
+#include "data.hpp"
 
 // https://www.goodtextures.com/image/19536/wood-bare-0256
 // https://stackoverflow.com/questions/39280104/how-to-get-current-camera-position-from-view-matrix
@@ -20,6 +21,8 @@ static constexpr float mapf(float x, float in_min, float in_max, float out_min, 
 }
 
 void LevelScene::on_enter() {
+    auto& data {user_data<Data>()};
+
     cam_controller = MyCameraController(
         &cam,
         get_width(),
@@ -61,8 +64,9 @@ void LevelScene::on_enter() {
     connect_event<BallMissEvent, &LevelScene::on_ball_miss>(this);
     connect_event<BallBrickCollisionEvent, &LevelScene::on_ball_brick_collision>(this);
 
+    bb::OpenGl::clear_color(0.1f, 0.1f, 0.2f);
+
     load_shaders();
-    load_font();
     load_platform();
     load_ball();
     load_paddle();
@@ -75,13 +79,16 @@ void LevelScene::on_enter() {
     create_ball();
 
     bricks.clear();
-    const auto level {load_level("data/levels/level1.json", id_gen)};
+    const auto level {load_level(data.selected_level, id_gen)};
 
     if (!level) {
         bb::log_message("Could not load level\n");
     } else {
         bricks = std::move(*level);
     }
+
+    lives = 3;
+    score = 0;
 }
 
 void LevelScene::on_exit() {
@@ -89,6 +96,8 @@ void LevelScene::on_exit() {
 }
 
 void LevelScene::on_update() {
+    auto& data {user_data<Data>()};
+
     cam_controller.update_controls(get_delta());
     cam_controller.update_camera(get_delta());
 
@@ -109,28 +118,32 @@ void LevelScene::on_update() {
 
     update_collisions();
 
-    bb::Renderable r_platform;
-    r_platform.vertex_array = cache_vertex_array["platform"_H];
-    r_platform.material = cache_material_instance["platform"_H];
-    r_platform.rotation.y = glm::radians(90.0f);
-    add_renderable(r_platform);
+    {
+        bb::Renderable r_platform;
+        r_platform.vertex_array = cache_vertex_array["platform"_H];
+        r_platform.material = cache_material_instance["platform"_H];
+        r_platform.rotation.y = glm::radians(90.0f);
+        add_renderable(r_platform);
+    }
 
-    bb::Renderable r_paddle;
-    r_paddle.vertex_array = cache_vertex_array["paddle"_H];
-    r_paddle.material = cache_material_instance["paddle"_H];
-    r_paddle.position = paddle.get_position();
-    r_paddle.rotation = paddle.get_rotation();
-    r_paddle.scale = paddle.get_scale();
-    add_renderable(r_paddle);
+    if (lives > 0) {
+        bb::Renderable r_paddle;
+        r_paddle.vertex_array = cache_vertex_array["paddle"_H];
+        r_paddle.material = cache_material_instance["paddle"_H];
+        r_paddle.position = paddle.get_position();
+        r_paddle.rotation = paddle.get_rotation();
+        r_paddle.scale = paddle.get_scale();
+        add_renderable(r_paddle);
 
 #if SHOW_DEBUG_RENDERING
-    Box b;
-    b.position = paddle.get_position();
-    b.width = paddle.get_dimensions().x;
-    b.height = paddle.get_dimensions().y;
-    b.depth = paddle.get_dimensions().z;
-    draw_bounding_box(b);
+        Box b;
+        b.position = paddle.get_position();
+        b.width = paddle.get_dimensions().x;
+        b.height = paddle.get_dimensions().y;
+        b.depth = paddle.get_dimensions().z;
+        draw_bounding_box(b);
 #endif
+    }
 
     for (const auto& [_, ball] : balls) {
         bb::Renderable r_ball;
@@ -163,6 +176,53 @@ void LevelScene::on_update() {
         b.depth = brick.get_dimensions().z;
         draw_bounding_box(b);
 #endif
+    }
+
+    {
+        const auto scale {0.8f};
+        const auto string {"Score: " + std::to_string(score)};
+        const auto [_, height] {data.basic_font->get_string_size(string, scale)};
+
+        bb::Text text;
+        text.font = data.basic_font;
+        text.string = string;
+        text.position = glm::vec2(2.0f, static_cast<float>(get_height() - height));
+        text.color = glm::vec3(0.4f, 0.5f, 0.9f);
+        text.scale = scale;
+        text.shadows = true;
+        add_text(text);
+    }
+
+    {
+        std::string string;
+        string.append(lives, '*');
+
+        const auto scale {1.3f};
+        const auto [width, height] {data.basic_font->get_string_size(string, scale)};
+
+        bb::Text text;
+        text.font = data.basic_font;
+        text.string = string;
+        text.position = glm::vec2(static_cast<float>(get_width() - width), static_cast<float>(get_height() - height));
+        text.color = glm::vec3(0.9f, 0.5f, 0.4f);
+        text.scale = scale;
+        text.shadows = true;
+        add_text(text);
+    }
+
+    if (lives == 0) {
+        const auto scale {1.8f};
+        const auto string {"Game Over"};
+        const auto [width, height] {data.basic_font->get_string_size(string, scale)};
+
+        bb::Text text;
+        text.font = data.basic_font;
+        text.string = string;
+        text.position = glm::vec2(static_cast<float>(get_width() - width), static_cast<float>(get_height() - height)) / 2.0f;
+        text.color = glm::vec3(0.8f);
+        text.scale = scale;
+        text.shadows = true;
+        add_text(text);
     }
 
 #if SHOW_DEBUG_RENDERING
@@ -211,6 +271,9 @@ void LevelScene::on_key_released(const bb::KeyReleasedEvent& event) {
             break;
         case bb::KeyCode::K_r:
             change_scene("level");
+            break;
+        case bb::KeyCode::K_ESCAPE:
+            change_scene("menu");
             break;
         default:
             break;
@@ -267,14 +330,6 @@ void LevelScene::load_shaders() {
         material->add_uniform(bb::Material::Uniform::Vec3, "u_material.specular"_H);
         material->add_uniform(bb::Material::Uniform::Float, "u_material.shininess"_H);
     }
-}
-
-void LevelScene::load_font() {
-    auto font {cache_font.load("simple"_H, "data/fonts/CodeNewRoman/code-new-roman.regular.ttf", 40.0f, 8, 180, 40, 512)};
-
-    font->begin_baking();
-    font->bake_ascii();
-    font->end_baking();
 }
 
 void LevelScene::load_platform() {
@@ -680,7 +735,14 @@ void LevelScene::on_ball_miss(const BallMissEvent& event) {
     balls.erase(ball.get_index());
 
     if (balls.empty()) {
-        bb::log_message("Game over!\n");  // TODO
+        lives--;
+
+        if (lives == 0) {
+            bb::log_message("Game over!\n");
+        } else {
+            paddle = Paddle();
+            create_ball();
+        }
     }
 }
 
@@ -708,6 +770,8 @@ void LevelScene::on_ball_brick_collision(const BallBrickCollisionEvent& event) {
             ball.velocity.x *= -1.0f;
             break;
     }
+
+    score += brick.get_score();
 
     bricks.erase(event.brick_index);
 
@@ -740,12 +804,13 @@ void LevelScene::draw_bounding_box(const Box& box) {
 }
 
 void LevelScene::draw_fps() {
+    auto& data {user_data<Data>()};
+
     bb::Text text;
-    text.font = cache_font["simple"_H];
+    text.font = data.basic_font;
     text.string = std::to_string(get_fps()) + " FPS, " + std::to_string(get_delta()) + " ms";
     text.position = glm::vec2(2.0f, 2.0f);
     text.color = glm::vec3(0.9f);
     text.scale = 0.3f;
-
     add_text(text);
 }

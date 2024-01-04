@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <functional>
 
 #include "engine/events.hpp"
 #include "engine/window.hpp"
@@ -48,6 +49,8 @@ namespace bb {
         std::vector<Scene*> scenes;
         Scene* current_scene {nullptr};
         Scene* next_scene {nullptr};
+
+        void* user_data {nullptr};
 
         friend class Window;
         friend class Scene;

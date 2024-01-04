@@ -14,20 +14,23 @@
 
 namespace bb {
     Application::Application(const ApplicationProperties& properties) {
-        window = std::make_unique<Window>(
-            properties.width,
-            properties.height,
-            properties.title,
-            properties.fullscreen,
-            this
-        );
+        WindowProperties window_properties;
+        window_properties.width = properties.width;
+        window_properties.height = properties.height;
+        window_properties.title = properties.title;
+        window_properties.fullscreen = properties.fullscreen;
+        window_properties.min_width = properties.min_width;
+        window_properties.min_height = properties.min_height;
 
+        window = std::make_unique<Window>(window_properties, this);
         renderer = std::make_unique<Renderer>(properties.width, properties.height);
 
         GlInfoDebug::initialize_debugging();  // TODO only in debug mode
 
         events.connect<WindowClosedEvent, &Application::on_window_closed>(this);
         events.connect<WindowResizedEvent, &Application::on_window_resized>(this);
+
+        user_data = properties.user_data;
 
         log_message("Initialized application\n");
     }

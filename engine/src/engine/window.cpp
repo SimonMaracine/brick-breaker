@@ -10,8 +10,8 @@
 #include "engine/input.hpp"
 
 namespace bb {
-    Window::Window(int width, int height, const std::string& title, bool fullscreen, Application* application)
-        : width(width), height(height), application(application) {
+    Window::Window(const WindowProperties& properties, Application* application)
+        : width(properties.width), height(properties.height), application(application) {
         if (SDL_Init(SDL_INIT_VIDEO) < 0) {
             log_message("Could not initialize SDL\n");
             throw InitializationError;
@@ -25,12 +25,12 @@ namespace bb {
 
         unsigned int flags {SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE};
 
-        if (fullscreen) {
+        if (properties.fullscreen) {
             flags |= SDL_WINDOW_FULLSCREEN;
         }
 
         window = SDL_CreateWindow(
-            title.c_str(),
+            properties.title.c_str(),
             SDL_WINDOWPOS_CENTERED,
             SDL_WINDOWPOS_CENTERED,
             width,
@@ -53,6 +53,8 @@ namespace bb {
         if (SDL_GL_SetSwapInterval(1) < 0) {
             throw InitializationError;
         }
+
+        SDL_SetWindowMinimumSize(window, properties.min_width, properties.min_height);
     }
 
     Window::~Window() {

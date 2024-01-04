@@ -13,6 +13,8 @@ add_executable(brick-breaker
     "src/level.cpp"
     "src/level.hpp"
     "src/main.cpp"
+    "src/menu.cpp"
+    "src/menu.hpp"
     "src/my_camera_controller.cpp"
     "src/my_camera_controller.hpp"
     "src/paddle.hpp"

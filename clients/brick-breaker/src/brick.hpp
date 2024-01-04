@@ -27,6 +27,11 @@ public:
     glm::ivec3 get_grid() const { return grid; }
     BrickType get_type() const { return type; }
 
+    int get_score() const {
+        static constexpr int values[] { 10, 15, 5 };
+        return values[static_cast<int>(type)];
+    }
+
     void set_position(glm::ivec3 grid) {
         position = glm::vec3(
             static_cast<float>(grid.x) * get_dimensions().x * 2.0f,
