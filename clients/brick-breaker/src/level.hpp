@@ -16,9 +16,6 @@
 #include "events.hpp"
 #include "id_generator.hpp"
 
-// Quick enable-disable
-#define SHOW_DEBUG_RENDERING 1
-
 struct LevelScene : public bb::Scene {
     LevelScene()
         : bb::Scene("level") {}
@@ -73,7 +70,7 @@ struct LevelScene : public bb::Scene {
         None,
         Lost,
         Won
-    } game_over;
+    } game_over {};
 
     // Caches to easily store these resources
     resmanager::Cache<bb::VertexArray> cache_vertex_array;

@@ -14,9 +14,9 @@ namespace bb {
     struct Camera2D;
     class Shader;
     class Framebuffer;
-    class Renderable;
-    class DirectionalLight;
-    class PointLight;
+    struct Renderable;
+    struct DirectionalLight;
+    struct PointLight;
     class Shader;
 
     class Scene {

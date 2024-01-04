@@ -108,3 +108,10 @@ target_compile_features(bb-engine PRIVATE cxx_std_17)
 set_target_properties(bb-engine PROPERTIES CXX_EXTENSIONS OFF)
 
 target_compile_definitions(bb-engine PRIVATE "UTF_CPP_CPLUSPLUS=201703")
+
+if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
+    target_compile_definitions(bb-engine PUBLIC
+        "NDEBUG"
+        "BB_RELEASE"
+    )
+endif()

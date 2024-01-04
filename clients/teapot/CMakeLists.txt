@@ -7,3 +7,5 @@ add_executable(teapot
 )
 
 target_link_libraries(teapot PRIVATE bb-engine)
+
+set_property(TARGET teapot PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}")

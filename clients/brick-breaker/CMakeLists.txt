@@ -21,3 +21,5 @@ add_executable(brick-breaker
 )
 
 target_link_libraries(brick-breaker PRIVATE bb-engine nlohmann_json)
+
+set_property(TARGET brick-breaker PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}")

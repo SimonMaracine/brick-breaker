@@ -25,7 +25,9 @@ namespace bb {
         window = std::make_unique<Window>(window_properties, this);
         renderer = std::make_unique<Renderer>(properties.width, properties.height);
 
-        GlInfoDebug::initialize_debugging();  // TODO only in debug mode
+#ifndef BB_RELEASE
+        GlInfoDebug::initialize_debugging();
+#endif
 
         events.connect<WindowClosedEvent, &Application::on_window_closed>(this);
         events.connect<WindowResizedEvent, &Application::on_window_resized>(this);

@@ -12,6 +12,12 @@
 #include "constants.hpp"
 #include "data.hpp"
 
+#ifdef BB_RELEASE
+    #define SHOW_DEBUG_RENDERING 0
+#else
+    #define SHOW_DEBUG_RENDERING 1
+#endif
+
 // https://www.goodtextures.com/image/19536/wood-bare-0256
 // https://stackoverflow.com/questions/39280104/how-to-get-current-camera-position-from-view-matrix
 
@@ -802,26 +808,25 @@ void LevelScene::on_ball_brick_collision(const BallBrickCollisionEvent& event) {
 }
 
 void LevelScene::draw_bounding_box(const Box& box) {
-    static constexpr auto color {GREEN};
     const auto& position {box.position};
     const auto width {glm::vec3(1.0f, 0.0f, 0.0f) * box.width};
     const auto height {glm::vec3(0.0f, 1.0f, 0.0f) * box.height};
     const auto depth {glm::vec3(0.0f, 0.0f, 1.0f) * box.depth};
 
-    debug_add_line(position - width - depth - height, position + width - depth - height, color);
-    debug_add_line(position - width - depth - height, position - width + depth - height, color);
-    debug_add_line(position - width + depth - height, position + width + depth - height, color);
-    debug_add_line(position + width + depth - height, position + width - depth - height, color);
+    debug_add_line(position - width - depth - height, position + width - depth - height, GREEN);
+    debug_add_line(position - width - depth - height, position - width + depth - height, GREEN);
+    debug_add_line(position - width + depth - height, position + width + depth - height, GREEN);
+    debug_add_line(position + width + depth - height, position + width - depth - height, GREEN);
 
-    debug_add_line(position - width - depth + height, position + width - depth + height, color);
-    debug_add_line(position - width - depth + height, position - width + depth + height, color);
-    debug_add_line(position - width + depth + height, position + width + depth + height, color);
-    debug_add_line(position + width + depth + height, position + width - depth + height, color);
+    debug_add_line(position - width - depth + height, position + width - depth + height, GREEN);
+    debug_add_line(position - width - depth + height, position - width + depth + height, GREEN);
+    debug_add_line(position - width + depth + height, position + width + depth + height, GREEN);
+    debug_add_line(position + width + depth + height, position + width - depth + height, GREEN);
 
-    debug_add_line(position - width - depth - height, position - width - depth + height, color);
-    debug_add_line(position + width - depth - height, position + width - depth + height, color);
-    debug_add_line(position + width + depth - height, position + width + depth + height, color);
-    debug_add_line(position - width + depth - height, position - width + depth + height, color);
+    debug_add_line(position - width - depth - height, position - width - depth + height, GREEN);
+    debug_add_line(position + width - depth - height, position + width - depth + height, GREEN);
+    debug_add_line(position + width + depth - height, position + width + depth + height, GREEN);
+    debug_add_line(position - width + depth - height, position - width + depth + height, GREEN);
 }
 
 void LevelScene::draw_fps() {

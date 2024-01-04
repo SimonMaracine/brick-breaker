@@ -20,8 +20,8 @@ public:
         set_position(grid);
     }
 
-    constexpr glm::vec3 get_dimensions() const { return glm::vec3(2.0f, 1.0f, 1.0f) * get_scale(); }
-    constexpr float get_scale() const { return 0.5f; }
+    static glm::vec3 get_dimensions() { return glm::vec3(2.0f, 1.0f, 1.0f) * get_scale(); }
+    static float get_scale() { return 0.5f; }
 
     glm::vec3 get_position() const { return position; }
     glm::ivec3 get_grid() const { return grid; }
