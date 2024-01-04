@@ -64,7 +64,7 @@ void LevelScene::on_enter() {
     connect_event<BallMissEvent, &LevelScene::on_ball_miss>(this);
     connect_event<BallBrickCollisionEvent, &LevelScene::on_ball_brick_collision>(this);
 
-    bb::OpenGl::clear_color(0.1f, 0.1f, 0.2f);
+    bb::OpenGl::clear_color(0.1f, 0.1f, 0.15f);
 
     load_shaders();
     load_platform();
@@ -659,6 +659,10 @@ std::optional<std::unordered_map<unsigned int, Brick>> LevelScene::load_level(co
         for (const nlohmann::json& j_brick : j_bricks) {
             const nlohmann::json& position {j_brick["position"].get<nlohmann::json>()};
             const int type {j_brick["type"].get<int>()};
+
+            if (position.size() != 3u) {
+                return std::nullopt;
+            }
 
             const int x {position[0].get<int>()};
             const int y {position[1].get<int>()};
