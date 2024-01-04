@@ -8,6 +8,7 @@
 
 #include "engine/application.hpp"
 #include "engine/events.hpp"
+#include "engine/sound_data.hpp"
 
 namespace bb {
     struct Camera;
@@ -99,6 +100,10 @@ namespace bb {
         void debug_add_lines(const std::vector<glm::vec3>& points, const glm::vec3& color);
         void debug_add_point(const glm::vec3& p, const glm::vec3& color);
         void debug_add_lamp(const glm::vec3& position, const glm::vec3& color);
+
+        void play_sound(std::shared_ptr<SoundData> sound_data);
+        void pause_sound();
+        void resume_sound();
     private:
         std::string name;
         Application* application {nullptr};

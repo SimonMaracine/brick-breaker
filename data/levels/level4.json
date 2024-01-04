@@ -1,0 +1,17 @@
+{
+    "name": "Easy",
+    "bricks": [
+        {
+            "position": [0, 0, 1],
+            "type": 0
+        },
+        {
+            "position": [-1, 0, 1],
+            "type": 1
+        },
+        {
+            "position": [1, 0, 1],
+            "type": 2
+        }
+    ]
+}

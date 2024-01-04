@@ -24,3 +24,7 @@
 [submodule "engine/extern/utfcpp"]
 	path = engine/extern/utfcpp
 	url = https://github.com/nemtrif/utfcpp
+[submodule "engine/extern/SDL_mixer"]
+	path = engine/extern/SDL_mixer
+	url = https://github.com/libsdl-org/SDL_mixer
+	branch = SDL2

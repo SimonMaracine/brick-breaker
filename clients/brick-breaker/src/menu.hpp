@@ -23,6 +23,7 @@ struct Menu : public bb::Scene {
 
     void load_font();
     void reload_levels();
+    void load_sounds();
 
     std::optional<std::string> get_level_name(const std::string& file_path);
 

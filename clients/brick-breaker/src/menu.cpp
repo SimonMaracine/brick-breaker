@@ -7,6 +7,10 @@
 #include <nlohmann/json.hpp>
 #include <glm/glm.hpp>
 
+// https://freesound.org/people/greenvwbeetle/sounds/244656/
+// https://freesound.org/people/Denis%20Chapon/sounds/109435/
+// https://opengameart.org/content/start-sounds-1
+
 void Menu::on_enter() {
     auto& data {user_data<Data>()};
 
@@ -14,6 +18,7 @@ void Menu::on_enter() {
         load_font();
     }
 
+    load_sounds();
     reload_levels();
 
     cam_2d.set_projection_matrix(0.0f, static_cast<float>(get_width()), 0.0f, static_cast<float>(get_height()));
@@ -122,6 +127,9 @@ void Menu::on_key_released(const bb::KeyReleasedEvent& event) {
         case bb::KeyCode::K_l:
             reload_levels();
             break;
+        case bb::KeyCode::K_b:
+            play_sound(data.sound_restart);
+            break;
         default:
             break;
     }
@@ -167,6 +175,19 @@ void Menu::reload_levels() {
             break;
         }
     }
+}
+
+void Menu::load_sounds() {
+    auto& data {user_data<Data>()};
+
+    data.sound_start = std::make_shared<bb::SoundData>("data/sounds/start.wav");
+    data.sound_collision_brick = std::make_shared<bb::SoundData>("data/sounds/pop.wav");
+    data.sound_collision_paddle = std::make_shared<bb::SoundData>("data/sounds/spring-bouncing.wav");
+    data.sound_collision_wall = std::make_shared<bb::SoundData>("data/sounds/plastic-hit.wav");
+    data.sound_missed_ball = std::make_shared<bb::SoundData>("data/sounds/missed-ball.wav");
+    data.sound_lost = std::make_shared<bb::SoundData>("data/sounds/lost.wav");
+    data.sound_won = std::make_shared<bb::SoundData>("data/sounds/won.wav");
+    data.sound_restart = std::make_shared<bb::SoundData>("data/sounds/restart.wav");
 }
 
 std::optional<std::string> Menu::get_level_name(const std::string& file_path) {

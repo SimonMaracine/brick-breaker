@@ -4,6 +4,7 @@
 
 #include "engine/application_properties.hpp"
 #include "engine/application.hpp"
+#include "engine/audio.hpp"
 #include "engine/buffer.hpp"
 #include "engine/camera_2d.hpp"
 #include "engine/camera_controller.hpp"
@@ -25,6 +26,7 @@
 #include "engine/renderer.hpp"
 #include "engine/scene.hpp"
 #include "engine/shader.hpp"
+#include "engine/sound_data.hpp"
 #include "engine/texture_data.hpp"
 #include "engine/texture.hpp"
 #include "engine/vertex_array.hpp"

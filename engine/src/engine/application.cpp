@@ -24,6 +24,7 @@ namespace bb {
 
         window = std::make_unique<Window>(window_properties, this);
         renderer = std::make_unique<Renderer>(properties.width, properties.height);
+        audio_manager = std::make_unique<AudioManager>();
 
 #ifndef BB_RELEASE
         GlInfoDebug::initialize_debugging();

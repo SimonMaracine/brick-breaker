@@ -12,7 +12,7 @@
 namespace bb {
     Window::Window(const WindowProperties& properties, Application* application)
         : width(properties.width), height(properties.height), application(application) {
-        if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
             log_message("Could not initialize SDL\n");
             throw InitializationError;
         }

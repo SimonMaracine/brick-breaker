@@ -21,11 +21,19 @@ set(ASSIMP_WARNINGS_AS_ERRORS OFF)
 set(ASSIMP_INJECT_DEBUG_POSTFIX OFF)
 set(ASSIMP_BUILD_ASSIMP_VIEW OFF)
 set(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
+set(SDL2MIXER_FLAC OFF)
+set(SDL2MIXER_MP3 OFF)
+set(SDL2MIXER_MOD OFF)
+set(SDL2MIXER_MIDI OFF)
+set(SDL2MIXER_OPUS OFF)
+set(SDL2MIXER_WAVPACK OFF)
+set(SDL2MIXER_OGG OFF)
 
 add_subdirectory(extern/SDL)
 add_subdirectory(extern/entt)
 add_subdirectory(extern/glm)
 add_subdirectory(extern/SDL_image)
+add_subdirectory(extern/SDL_mixer)
 add_subdirectory(extern/resmanager)
 add_subdirectory(extern/assimp)
 
@@ -33,6 +41,8 @@ add_library(bb-engine
     "src/engine/application_properties.hpp"
     "src/engine/application.cpp"
     "src/engine/application.hpp"
+    "src/engine/audio.cpp"
+    "src/engine/audio.hpp"
     "src/engine/buffer.cpp"
     "src/engine/buffer.hpp"
     "src/engine/camera_2d.hpp"
@@ -67,6 +77,8 @@ add_library(bb-engine
     "src/engine/scene.hpp"
     "src/engine/shader.cpp"
     "src/engine/shader.hpp"
+    "src/engine/sound_data.cpp"
+    "src/engine/sound_data.hpp"
     "src/engine/texture_data.cpp"
     "src/engine/texture_data.hpp"
     "src/engine/texture.cpp"
@@ -83,6 +95,7 @@ target_link_libraries(bb-engine PRIVATE
     SDL2::SDL2-static
     glad
     SDL2_image::SDL2_image-static
+    SDL2_mixer::SDL2_mixer-static
     assimp::assimp
     stb
     utfcpp

@@ -28,8 +28,6 @@ static constexpr float mapf(float x, float in_min, float in_max, float out_min, 
 }
 
 void LevelScene::on_enter() {
-    auto& data {user_data<Data>()};
-
     cam_controller = MyCameraController(
         &cam,
         get_width(),
@@ -85,6 +83,8 @@ void LevelScene::on_enter() {
     balls.clear();
     create_ball();
 
+    auto& data {user_data<Data>()};
+
     bricks.clear();
     const auto level {load_level(data.selected_level, id_gen)};
 
@@ -97,6 +97,8 @@ void LevelScene::on_enter() {
     lives = 3u;
     score = 0;
     game_over = GameOver::None;
+
+    play_sound(data.sound_start);
 }
 
 void LevelScene::on_exit() {
@@ -104,8 +106,6 @@ void LevelScene::on_exit() {
 }
 
 void LevelScene::on_update() {
-    auto& data {user_data<Data>()};
-
     cam_controller.update_controls(get_delta());
     cam_controller.update_camera(get_delta());
 
@@ -185,6 +185,8 @@ void LevelScene::on_update() {
         draw_bounding_box(b);
 #endif
     }
+
+    auto& data {user_data<Data>()};
 
     {
         const auto scale {0.8f};
@@ -629,19 +631,27 @@ void LevelScene::update_ball(Ball& ball) {
     const glm::quat rot {glm::angleAxis(glm::length(ball.velocity) * 0.01f, perpendicular_velocity)};
     ball.rotation = rot * ball.rotation;
 
+    auto& data {user_data<Data>()};
+
     if (ball.get_position().x > PLATFORM_EDGE_MAX_X - ball.radius) {
         ball.set_position_x(PLATFORM_EDGE_MAX_X - ball.radius);
         ball.velocity.x *= -1.0f;
+
+        play_sound(data.sound_collision_wall);
     }
 
     if (ball.get_position().x < PLATFORM_EDGE_MIN_X + ball.radius) {
         ball.set_position_x(PLATFORM_EDGE_MIN_X + ball.radius);
         ball.velocity.x *= -1.0f;
+
+        play_sound(data.sound_collision_wall);
     }
 
     if (ball.get_position().z < PLATFORM_EDGE_MIN_Z + ball.radius) {
         ball.set_position_z(PLATFORM_EDGE_MIN_Z + ball.radius);
         ball.velocity.z *= -1.0f;
+
+        play_sound(data.sound_collision_wall);
     }
 
     if (ball.get_position().z > DEADLINE_Z) {
@@ -752,6 +762,9 @@ void LevelScene::on_ball_paddle_collision(const BallPaddleCollisionEvent& event)
         default:
             break;
     }
+
+    auto& data {user_data<Data>()};
+    play_sound(data.sound_collision_paddle);
 }
 
 void LevelScene::on_ball_miss(const BallMissEvent& event) {
@@ -759,12 +772,18 @@ void LevelScene::on_ball_miss(const BallMissEvent& event) {
 
     balls.erase(ball.get_index());
 
+    auto& data {user_data<Data>()};
+
+    play_sound(data.sound_missed_ball);
+
     if (balls.empty()) {
         lives--;
 
         if (lives == 0) {
             bb::log_message("Game over!\n");
             game_over = GameOver::Lost;
+
+            play_sound(data.sound_lost);
         } else {
             paddle = Paddle();
             create_ball();
@@ -797,6 +816,10 @@ void LevelScene::on_ball_brick_collision(const BallBrickCollisionEvent& event) {
             break;
     }
 
+    auto& data {user_data<Data>()};
+
+    play_sound(data.sound_collision_brick);
+
     score += brick.get_score();
 
     bricks.erase(event.brick_index);
@@ -804,6 +827,10 @@ void LevelScene::on_ball_brick_collision(const BallBrickCollisionEvent& event) {
     if (bricks.empty()) {
         bb::log_message("Congratulations!\n");
         game_over = GameOver::Won;
+
+        balls.clear();
+
+        play_sound(data.sound_won);
     }
 }
 

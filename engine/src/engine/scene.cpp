@@ -93,4 +93,16 @@ namespace bb {
     void Scene::debug_add_lamp(const glm::vec3& position, const glm::vec3& color) {
         application->renderer->debug_add_lamp(position, color);
     }
+
+    void Scene::play_sound(std::shared_ptr<SoundData> sound_data) {
+        application->audio_manager->play_sound(sound_data);
+    }
+
+    void Scene::pause_sound() {
+        application->audio_manager->pause_sound();
+    }
+
+    void Scene::resume_sound() {
+        application->audio_manager->resume_sound();
+    }
 }
