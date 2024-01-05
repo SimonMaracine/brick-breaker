@@ -67,6 +67,8 @@ void LevelScene::on_enter() {
 
     connect_event<BallPaddleCollisionEvent, &LevelScene::on_ball_paddle_collision>(this);
     connect_event<BallMissEvent, &LevelScene::on_ball_miss>(this);
+    connect_event<OrbMissEvent, &LevelScene::on_orb_miss>(this);
+    connect_event<OrbPaddleCollisionEvent, &LevelScene::on_orb_paddle_collision>(this);
     connect_event<BallBrickCollisionEvent, &LevelScene::on_ball_brick_collision>(this);
 
     bb::OpenGl::clear_color(0.1f, 0.1f, 0.15f);
@@ -77,6 +79,7 @@ void LevelScene::on_enter() {
     load_paddle();
     load_brick();
     load_lamp();
+    load_orb();
 
     id_gen = IdGenerator();
     paddle = Paddle();
@@ -125,6 +128,10 @@ void LevelScene::on_update() {
         update_ball(ball);
     }
 
+    for (auto& [_, orb] : orbs) {
+        update_orb(orb);
+    }
+
     update_collisions();
 
     {
@@ -163,6 +170,22 @@ void LevelScene::on_update() {
 #if SHOW_DEBUG_RENDERING
             debug_add_line(ball.get_position() - glm::vec3(ball.radius, 0.0f, 0.0f), ball.get_position() + glm::vec3(ball.radius, 0.0f, 0.0f), GREEN);
             debug_add_line(ball.get_position() - glm::vec3(0.0f, 0.0f, ball.radius), ball.get_position() + glm::vec3(0.0f, 0.0f, ball.radius), GREEN);
+#endif
+        }
+
+        for (const auto& [_, orb] : orbs) {
+            const auto material_id {resmanager::HashedStr64("orb" + std::to_string(static_cast<int>(orb.get_type())))};
+
+            bb::Renderable r_orb;
+            r_orb.vertex_array = cache_vertex_array["orb"_H];
+            r_orb.material = cache_material_instance[material_id];
+            r_orb.position = orb.position;
+            r_orb.scale = orb.radius;
+            add_renderable(r_orb);
+
+#if SHOW_DEBUG_RENDERING
+            debug_add_line(orb.position - glm::vec3(orb.radius, 0.0f, 0.0f), orb.position + glm::vec3(orb.radius, 0.0f, 0.0f), GREEN);
+            debug_add_line(orb.position - glm::vec3(0.0f, 0.0f, orb.radius), orb.position + glm::vec3(0.0f, 0.0f, orb.radius), GREEN);
 #endif
         }
     }
@@ -637,6 +660,68 @@ void LevelScene::load_lamp() {
     }
 }
 
+void LevelScene::load_orb() {
+    auto mesh {std::make_shared<bb::Mesh>(
+        "data/models/ball.obj",
+        "Sphere",
+        bb::Mesh::Type::P
+    )};
+
+    auto vertex_buffer {std::make_shared<bb::VertexBuffer>(
+        mesh->get_vertices(),
+        mesh->get_vertices_size()
+    )};
+
+    auto index_buffer {std::make_shared<bb::IndexBuffer>(
+        mesh->get_indices(),
+        mesh->get_indices_size()
+    )};
+
+    auto vertex_array {cache_vertex_array.load("orb"_H)};
+    vertex_array->configure([&](bb::VertexArray* va) {
+        bb::VertexBufferLayout layout;
+        layout.add(0, bb::VertexBufferLayout::Float, 3);
+
+        va->add_vertex_buffer(vertex_buffer, layout);
+        va->add_index_buffer(index_buffer);
+    });
+
+    {
+        auto material_instance {cache_material_instance.load("orb0"_H, cache_material["flat"_H])};
+        material_instance->set_vec3("u_material.color"_H, ORB_COLORS[static_cast<int>(OrbType::SpeedUp)]);
+    }
+
+    {
+        auto material_instance {cache_material_instance.load("orb1"_H, cache_material["flat"_H])};
+        material_instance->set_vec3("u_material.color"_H, ORB_COLORS[static_cast<int>(OrbType::SpeedDown)]);
+    }
+
+    {
+        auto material_instance {cache_material_instance.load("orb2"_H, cache_material["flat"_H])};
+        material_instance->set_vec3("u_material.color"_H, ORB_COLORS[static_cast<int>(OrbType::ExtraLife)]);
+    }
+
+    {
+        auto material_instance {cache_material_instance.load("orb3"_H, cache_material["flat"_H])};
+        material_instance->set_vec3("u_material.color"_H, ORB_COLORS[static_cast<int>(OrbType::Die)]);
+    }
+
+    {
+        auto material_instance {cache_material_instance.load("orb4"_H, cache_material["flat"_H])};
+        material_instance->set_vec3("u_material.color"_H, ORB_COLORS[static_cast<int>(OrbType::FireBall)]);
+    }
+
+    {
+        auto material_instance {cache_material_instance.load("orb5"_H, cache_material["flat"_H])};
+        material_instance->set_vec3("u_material.color"_H, ORB_COLORS[static_cast<int>(OrbType::NormalBall)]);
+    }
+
+    {
+        auto material_instance {cache_material_instance.load("orb6"_H, cache_material["flat"_H])};
+        material_instance->set_vec3("u_material.color"_H, ORB_COLORS[static_cast<int>(OrbType::ExtraBall)]);
+    }
+}
+
 void LevelScene::update_collisions() {
     for (auto& [index, ball] : balls) {
         Sphere s;
@@ -679,6 +764,24 @@ void LevelScene::update_collisions() {
             }
         }
     }
+
+    for (auto& [index, orb] : orbs) {
+        Sphere s;
+        s.position = orb.position;
+        s.radius = orb.radius;
+
+        Box b;
+        b.position = paddle.get_position();
+        b.width = paddle.get_dimensions().x;
+        b.height = paddle.get_dimensions().y;
+        b.depth = paddle.get_dimensions().z;
+
+        if (collision_sphere_box(s, b)) {
+            bb::log_message("Collided!\n");
+
+            enqueue_event<OrbPaddleCollisionEvent>(index);
+        }
+    }
 }
 
 void LevelScene::update_bricks() {
@@ -717,6 +820,14 @@ void LevelScene::update_paddle(Paddle& paddle) {
 
     if (paddle.get_position().x > max) {
         paddle.set_position(max);
+    }
+}
+
+void LevelScene::update_orb(Orb& orb) {
+    orb.position += orb.velocity * get_delta();
+
+    if (orb.position.z > DEADLINE_Z) {
+        enqueue_event<OrbMissEvent>(orb.get_index());
     }
 }
 
@@ -796,6 +907,30 @@ void LevelScene::shoot_balls() {
 void LevelScene::create_ball() {
     const auto index {id_gen.generate()};
     balls[index] = Ball(index);
+}
+
+void LevelScene::spawn_orb(glm::vec3 position) {
+    const auto velocity {glm::vec3(0.0f, 0.0f, glm::linearRand(5.0f, 7.0f))};
+    const float random_type {glm::linearRand(static_cast<float>(OrbType::FIRST), static_cast<float>(OrbType::LAST) + 1.0f)};
+
+    const auto index {id_gen.generate()};
+    orbs[index] = Orb(index, position.x, position.z, velocity, static_cast<OrbType>(static_cast<int>(random_type)));
+}
+
+void LevelScene::die() {
+    auto& data {user_data<Data>()};
+    play_sound(data.sound_die);
+
+    lives--;
+    balls.clear();
+    orbs.clear();
+
+    if (lives == 0) {
+        lose();
+    } else {
+        paddle = Paddle();
+        create_ball();
+    }
 }
 
 void LevelScene::win() {
@@ -922,22 +1057,72 @@ void LevelScene::on_ball_paddle_collision(const BallPaddleCollisionEvent& event)
 }
 
 void LevelScene::on_ball_miss(const BallMissEvent& event) {
-    Ball& ball {balls.at(event.ball_index)};  // Can't fail
-
-    balls.erase(ball.get_index());
-
-    auto& data {user_data<Data>()};
-
-    play_sound(data.sound_missed_ball);
+    balls.erase(event.ball_index);
 
     if (balls.empty()) {
-        lives--;
+        die();
+    }
+}
 
-        if (lives == 0) {
-            lose();
-        } else {
-            paddle = Paddle();
-            create_ball();
+void LevelScene::on_orb_miss(const OrbMissEvent& event) {
+    orbs.erase(event.orb_index);
+}
+
+void LevelScene::on_orb_paddle_collision(const OrbPaddleCollisionEvent& event) {
+    if (orbs.find(event.orb_index) != orbs.end()) {
+        Orb& orb {orbs.at(event.orb_index)};
+
+        auto& data {user_data<Data>()};
+        play_sound(data.sound_switch);
+
+        switch (orb.get_type()) {
+            case OrbType::SpeedUp:
+                for (auto& [_, ball] : balls) {
+                    ball.velocity *= 1.25f;
+                }
+
+                break;
+            case OrbType::SpeedDown:
+                for (auto& [_, ball] : balls) {
+                    ball.velocity *= 0.8f;
+                }
+
+                break;
+            case OrbType::ExtraLife:
+                lives++;
+
+                break;
+            case OrbType::Die:
+                die();
+
+                break;
+            case OrbType::FireBall:
+                for (auto& [_, ball] : balls) {
+                    ball.fire = true;
+                    ball.radius = BALL_RADIUS_FIRE;
+                }
+
+                break;
+            case OrbType::NormalBall:
+                for (auto& [_, ball] : balls) {
+                    ball.fire = false;
+                    ball.radius = BALL_RADIUS_NORMAL;
+                }
+
+                break;
+            case OrbType::ExtraBall:
+                create_ball();
+
+                break;
+            default:
+                break;
+        }
+
+        score += orb.get_points();
+
+        // It could have been already erased by die()
+        if (orbs.find(event.orb_index) != orbs.end()) {
+            orbs.erase(event.orb_index);
         }
     }
 }
@@ -948,31 +1133,36 @@ void LevelScene::on_ball_brick_collision(const BallBrickCollisionEvent& event) {
     if (bricks.find(event.brick_index) != bricks.end()) {
         const Brick& brick {bricks.at(event.brick_index)};
 
-        // TODO fire ball
-        switch (event.side) {
-            case SphereBoxSide::Front:
-                ball.set_position_z(brick.get_position().z + brick.get_dimensions().z + ball.radius);
-                ball.velocity.z *= -1.0f;
-                break;
-            case SphereBoxSide::Back:
-                ball.set_position_z(brick.get_position().z - brick.get_dimensions().z - ball.radius);
-                ball.velocity.z *= -1.0f;
-                break;
-            case SphereBoxSide::Left:
-                ball.set_position_x(brick.get_position().x - brick.get_dimensions().x - ball.radius);
-                ball.velocity.x *= -1.0f;
-                break;
-            case SphereBoxSide::Right:
-                ball.set_position_x(brick.get_position().x + brick.get_dimensions().x + ball.radius);
-                ball.velocity.x *= -1.0f;
-                break;
+        if (!ball.fire) {
+            switch (event.side) {
+                case SphereBoxSide::Front:
+                    ball.set_position_z(brick.get_position().z + brick.get_dimensions().z + ball.radius);
+                    ball.velocity.z *= -1.0f;
+                    break;
+                case SphereBoxSide::Back:
+                    ball.set_position_z(brick.get_position().z - brick.get_dimensions().z - ball.radius);
+                    ball.velocity.z *= -1.0f;
+                    break;
+                case SphereBoxSide::Left:
+                    ball.set_position_x(brick.get_position().x - brick.get_dimensions().x - ball.radius);
+                    ball.velocity.x *= -1.0f;
+                    break;
+                case SphereBoxSide::Right:
+                    ball.set_position_x(brick.get_position().x + brick.get_dimensions().x + ball.radius);
+                    ball.velocity.x *= -1.0f;
+                    break;
+            }
         }
 
-        score += brick.get_score();
+        score += brick.get_points();
         bricks.erase(event.brick_index);
 
         auto& data {user_data<Data>()};
         play_sound(data.sound_collision_brick);
+
+        if (glm::linearRand(0.0f, 1.0f) > ORB_RATE) {
+            spawn_orb(brick.get_position());
+        }
 
         if (bricks.empty()) {
             win();

@@ -13,6 +13,7 @@
 #include "paddle.hpp"
 #include "ball.hpp"
 #include "brick.hpp"
+#include "orb.hpp"
 #include "events.hpp"
 #include "id_generator.hpp"
 
@@ -34,13 +35,17 @@ struct LevelScene : public bb::Scene {
     void load_paddle();
     void load_brick();
     void load_lamp();
+    void load_orb();
 
     void update_collisions();
     void update_bricks();
     void update_paddle(Paddle& paddle);
+    void update_orb(Orb& orb);
     void update_ball(Ball& ball);
     void shoot_balls();
     void create_ball();
+    void spawn_orb(glm::vec3 position);
+    void die();
     void win();
     void lose();
     static std::optional<std::unordered_map<unsigned int, Brick>> load_level(const std::string& file_path, IdGenerator& gen);
@@ -48,6 +53,8 @@ struct LevelScene : public bb::Scene {
     float rotate_ball(const Ball& ball);
     void on_ball_paddle_collision(const BallPaddleCollisionEvent& event);
     void on_ball_miss(const BallMissEvent& event);
+    void on_orb_miss(const OrbMissEvent& event);
+    void on_orb_paddle_collision(const OrbPaddleCollisionEvent& event);
     void on_ball_brick_collision(const BallBrickCollisionEvent& event);
 
     void draw_bounding_box(const Box& box);
@@ -66,6 +73,7 @@ struct LevelScene : public bb::Scene {
     Paddle paddle;
     std::unordered_map<unsigned int, Ball> balls;
     std::unordered_map<unsigned int, Brick> bricks;
+    std::unordered_map<unsigned int, Orb> orbs;
 
     unsigned int lives {};
     int score {};

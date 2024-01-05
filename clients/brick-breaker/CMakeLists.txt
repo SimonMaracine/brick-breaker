@@ -17,6 +17,7 @@ add_executable(brick-breaker
     "src/menu.hpp"
     "src/my_camera_controller.cpp"
     "src/my_camera_controller.hpp"
+    "src/orb.hpp"
     "src/paddle.hpp"
 )
 

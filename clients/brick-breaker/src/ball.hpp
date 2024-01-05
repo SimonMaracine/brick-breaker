@@ -25,8 +25,9 @@ public:
     glm::vec3 velocity {0.0f, 0.0f, 0.01f};  // Velocity must never be zero or else it completely messes up the transformation
     glm::quat rotation {1.0f, 0.0f, 0.0f, 0.0f};
 
-    float radius {0.3f};
+    float radius {BALL_RADIUS_NORMAL};
     bool attached_to_paddle {true};
+    bool fire {false};
 
     glm::mat4 transformation {1.0f};
 private:

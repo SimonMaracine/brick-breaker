@@ -186,7 +186,7 @@ void Menu::load_sounds() {
     data.sound_collision_brick = std::make_shared<bb::SoundData>("data/sounds/pop.wav");
     data.sound_collision_paddle = std::make_shared<bb::SoundData>("data/sounds/spring-bouncing.wav");
     data.sound_collision_wall = std::make_shared<bb::SoundData>("data/sounds/plastic-hit.wav");
-    data.sound_missed_ball = std::make_shared<bb::SoundData>("data/sounds/missed-ball.wav");
+    data.sound_die = std::make_shared<bb::SoundData>("data/sounds/die.wav");
     data.sound_lost = std::make_shared<bb::SoundData>("data/sounds/lost.wav");
     data.sound_won = std::make_shared<bb::SoundData>("data/sounds/won.wav");
     data.sound_switch = std::make_shared<bb::SoundData>("data/sounds/switch.wav");

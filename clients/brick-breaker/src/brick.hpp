@@ -8,6 +8,7 @@ enum class BrickType {
     Pink,
     Blue,
     Yellow,
+
     FIRST = Pink,
     LAST = Yellow
 };
@@ -27,7 +28,7 @@ public:
     glm::ivec3 get_grid() const { return grid; }
     BrickType get_type() const { return type; }
 
-    int get_score() const {
+    int get_points() const {
         static constexpr int values[] { 10, 15, 5 };
         return values[static_cast<int>(type)];
     }
