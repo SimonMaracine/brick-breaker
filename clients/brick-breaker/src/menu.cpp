@@ -39,8 +39,8 @@ void Menu::on_update() {
     capture(cam_2d);
 
     {
-        const auto scale {1.8f};
-        const auto string {"Brick Breaker"};
+        static constexpr float scale {1.8f};
+        const char* string {"Brick Breaker"};
         const auto [width, height] {data.basic_font->get_string_size(string, scale)};
 
         bb::Text text;
@@ -54,10 +54,10 @@ void Menu::on_update() {
     }
 
     {
-        const auto scale {0.4f};
-        const auto string1 {"Mom, I wanna play that brick breaker game! Can I have it?"};
-        const auto string2 {"No! We have brick breaker at home."};
-        const auto string3 {"Brick breaker at home:"};
+        static constexpr float scale {0.4f};
+        const char* string1 {"Mom, I wanna play that brick breaker game! Can I have it?"};
+        const char* string2 {"No! We have brick breaker at home."};
+        const char* string3 {"Brick breaker at home:"};
 
         const auto height2 {data.basic_font->get_string_size(string2, scale).second};
         const auto height3 {data.basic_font->get_string_size(string3, scale).second};
@@ -87,7 +87,7 @@ void Menu::on_update() {
             const auto& name {level_paths[i].second};
             const bool selected {i == static_cast<std::size_t>(level_index)};
 
-            const auto scale {0.75f};
+            static constexpr float scale {0.75f};
             const auto string {selected ? "* " + name : name};
 
             const auto [width, height] {data.basic_font->get_string_size(string, scale)};
@@ -104,6 +104,8 @@ void Menu::on_update() {
             y_position -= height;
         }
     }
+
+    draw_version();
 }
 
 void Menu::on_window_resized(const bb::WindowResizedEvent& event) {
@@ -147,7 +149,7 @@ void Menu::load_font() {
 void Menu::reload_levels() {
     level_paths.clear();
 
-    static const char* levels_directory {"data/levels"};
+    const char* levels_directory {"data/levels"};
 
     const std::filesystem::path levels_path {levels_directory};
 
@@ -210,4 +212,26 @@ std::optional<std::string> Menu::get_level_name(const std::string& file_path) {
     }
 
     return std::make_optional(result);
+}
+
+void Menu::draw_version() {
+    auto& data {user_data<Data>()};
+
+    static constexpr float scale {0.3f};
+    const auto string {
+        "version " +
+        std::to_string(VER_MAJOR) + "." +
+        std::to_string(VER_MINOR) + "." +
+        std::to_string(VER_PATCH)
+    };
+
+    const auto [width, _] {data.basic_font->get_string_size(string, scale)};
+
+    bb::Text text;
+    text.font = data.basic_font;
+    text.string = string;
+    text.position = glm::vec2(static_cast<float>(get_width() - width) - 2.0f, 2.0f);
+    text.color = glm::vec3(0.9f);
+    text.scale = scale;
+    add_text(text);
 }

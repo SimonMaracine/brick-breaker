@@ -189,7 +189,7 @@ void LevelScene::on_update() {
     auto& data {user_data<Data>()};
 
     {
-        const auto scale {0.8f};
+        static constexpr float scale {0.8f};
         const auto string {"Score: " + std::to_string(score)};
         const auto [_, height] {data.basic_font->get_string_size(string, scale)};
 
@@ -207,7 +207,7 @@ void LevelScene::on_update() {
         std::string string;
         string.append(lives, '*');
 
-        const auto scale {1.3f};
+        static constexpr float scale {1.3f};
         const auto [width, height] {data.basic_font->get_string_size(string, scale)};
 
         bb::Text text;
@@ -235,7 +235,7 @@ void LevelScene::on_update() {
                 break;
         }
 
-        const auto scale {2.0f};
+        static constexpr float scale {2.0f};
         const auto [width, height] {data.basic_font->get_string_size(string, scale)};
 
         bb::Text text;
