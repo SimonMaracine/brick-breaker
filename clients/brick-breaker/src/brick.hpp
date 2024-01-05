@@ -8,9 +8,10 @@ enum class BrickType {
     Pink,
     Blue,
     Yellow,
+    Black,
 
     FIRST = Pink,
-    LAST = Yellow
+    LAST = Black
 };
 
 class Brick {
@@ -29,7 +30,7 @@ public:
     BrickType get_type() const { return type; }
 
     int get_points() const {
-        static constexpr int values[] { 10, 15, 5 };
+        static constexpr int values[] { 10, 15, 5, 20 };
         return values[static_cast<int>(type)];
     }
 

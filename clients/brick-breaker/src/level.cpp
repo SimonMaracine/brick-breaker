@@ -610,11 +610,12 @@ void LevelScene::load_brick() {
     cache_texture.load("brick1"_H, "data/textures/brick-texture1.png", specification);
     cache_texture.load("brick2"_H, "data/textures/brick-texture2.png", specification);
     cache_texture.load("brick3"_H, "data/textures/brick-texture3.png", specification);
+    cache_texture.load("brick4"_H, "data/textures/brick-texture4.png", specification);
 
     {
         auto material_instance {cache_material_instance.load("brick1"_H, cache_material["simple_textured_shadows"_H])};
         material_instance->set_texture("u_material.ambient_diffuse"_H, cache_texture["brick1"_H], 0);
-        material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.5f));
+        material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.55f));
         material_instance->set_float("u_material.shininess"_H, 32.0f);
         material_instance->flags |= bb::Material::CastShadow;
     }
@@ -623,15 +624,23 @@ void LevelScene::load_brick() {
         auto material_instance {cache_material_instance.load("brick2"_H, cache_material["simple_textured_shadows"_H])};
         material_instance->set_texture("u_material.ambient_diffuse"_H, cache_texture["brick2"_H], 0);
         material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.5f));
-        material_instance->set_float("u_material.shininess"_H, 32.0f);
+        material_instance->set_float("u_material.shininess"_H, 64.0f);
         material_instance->flags |= bb::Material::CastShadow;
     }
 
     {
         auto material_instance {cache_material_instance.load("brick3"_H, cache_material["simple_textured_shadows"_H])};
         material_instance->set_texture("u_material.ambient_diffuse"_H, cache_texture["brick3"_H], 0);
-        material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.5f));
+        material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.55f));
         material_instance->set_float("u_material.shininess"_H, 32.0f);
+        material_instance->flags |= bb::Material::CastShadow;
+    }
+
+    {
+        auto material_instance {cache_material_instance.load("brick4"_H, cache_material["simple_textured_shadows"_H])};
+        material_instance->set_texture("u_material.ambient_diffuse"_H, cache_texture["brick4"_H], 0);
+        material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.5f));
+        material_instance->set_float("u_material.shininess"_H, 64.0f);
         material_instance->flags |= bb::Material::CastShadow;
     }
 }

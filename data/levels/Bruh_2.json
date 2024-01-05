@@ -19,7 +19,7 @@
         },
         {
             "position": [-4,0,0],
-            "type": 0
+            "type": 3
         },
         {
             "position": [0,0,2],
@@ -95,7 +95,7 @@
         },
         {
             "position": [0,0,-5],
-            "type": 2
+            "type": 3
         },
         {
             "position": [0,1,-5],
@@ -115,7 +115,7 @@
         },
         {
             "position": [0,1,5],
-            "type": 1
+            "type": 3
         },
         {
             "position": [0,2,5],
@@ -131,7 +131,7 @@
         },
         {
             "position": [2,1,5],
-            "type": 2
+            "type": 3
         },
         {
             "position": [2,2,5],
