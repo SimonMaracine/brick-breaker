@@ -35,6 +35,10 @@ namespace bb {
         application->window->set_vsync(enabled);
     }
 
+    void Scene::capture_mouse(bool enabled) {
+        application->window->capture_mouse(enabled);
+    }
+
     void Scene::capture(const Camera& camera, const glm::vec3& position) {
         application->renderer->capture(camera, position);
     }

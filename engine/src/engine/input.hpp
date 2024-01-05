@@ -5,23 +5,23 @@
 */
 
 #define BB_INTERNAL_SCANCODE_TO_KEYCODE(X) ((X) | (1 << 30))
-#define BB_INTERNAL_BUTTON(X) (1 << (static_cast<int>(X) - 1))
+#define BB_INTERNAL_BUTTON(X) (1u << (static_cast<int>(X) - 1))
 
 namespace bb {
-    enum class MouseButton : unsigned char {
-        LEFT = 1,
-        MIDDLE = 2,
-        RIGHT = 3,
-        X1 = 4,
-        X2 = 5
+    enum MouseButton : unsigned char {
+        MB_LEFT_ENUM = 1,
+        MB_MIDDLE_ENUM = 2,
+        MB_RIGHT_ENUM = 3,
+        MB_X1_ENUM = 4,
+        MB_X2_ENUM = 5
     };
 
     enum MouseButtons : unsigned int {
-        MB_LEFT = BB_INTERNAL_BUTTON(MouseButton::LEFT),
-        MB_MIDDLE = BB_INTERNAL_BUTTON(MouseButton::MIDDLE),
-        MB_RIGHT = BB_INTERNAL_BUTTON(MouseButton::RIGHT),
-        MB_X1 = BB_INTERNAL_BUTTON(MouseButton::X1),
-        MB_X2 = BB_INTERNAL_BUTTON(MouseButton::X2)
+        MB_LEFT = BB_INTERNAL_BUTTON(MB_LEFT_ENUM),
+        MB_MIDDLE = BB_INTERNAL_BUTTON(MB_MIDDLE_ENUM),
+        MB_RIGHT = BB_INTERNAL_BUTTON(MB_RIGHT_ENUM),
+        MB_X1 = BB_INTERNAL_BUTTON(MB_X1_ENUM),
+        MB_X2 = BB_INTERNAL_BUTTON(MB_X2_ENUM)
     };
 
     namespace internal {

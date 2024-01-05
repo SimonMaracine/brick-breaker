@@ -65,6 +65,8 @@ void LevelScene::on_enter() {
     connect_event<bb::WindowResizedEvent, &LevelScene::on_window_resized>(this);
     connect_event<bb::KeyPressedEvent, &LevelScene::on_key_pressed>(this);
     connect_event<bb::KeyReleasedEvent, &LevelScene::on_key_released>(this);
+    connect_event<bb::MouseMovedEvent, &LevelScene::on_mouse_moved>(this);
+    connect_event<bb::MouseButtonReleasedEvent, &LevelScene::on_mouse_button_released>(this);
 
     connect_event<BallPaddleCollisionEvent, &LevelScene::on_ball_paddle_collision>(this);
     connect_event<BallMissEvent, &LevelScene::on_ball_miss>(this);
@@ -84,6 +86,9 @@ void LevelScene::on_enter() {
     load_orb();
 
     skybox(cache_texture_cubemap["skybox"_H]);
+
+    mouse_input = false;
+    capture_mouse(mouse_input);
 
     id_gen = IdGenerator();
     paddle = Paddle();
@@ -244,7 +249,7 @@ void LevelScene::on_update() {
     auto& data {user_data<Data>()};
 
     {
-        static constexpr float scale {0.8f};
+        static constexpr float scale {1.0f};
         const auto string {"Score: " + std::to_string(score)};
         const auto [_, height] {data.basic_font->get_string_size(string, scale)};
 
@@ -262,7 +267,7 @@ void LevelScene::on_update() {
         std::string string;
         string.append(lives, '*');
 
-        static constexpr float scale {1.3f};
+        static constexpr float scale {1.5f};
         const auto [width, height] {data.basic_font->get_string_size(string, scale)};
 
         bb::Text text;
@@ -357,6 +362,27 @@ void LevelScene::on_key_released(const bb::KeyReleasedEvent& event) {
             break;
         default:
             break;
+    }
+}
+
+void LevelScene::on_mouse_moved(const bb::MouseMovedEvent& event) {
+    if (!mouse_input) {
+        return;
+    }
+
+    paddle.set_position(paddle.get_position().x + event.xrel * 0.9f * get_delta());
+}
+
+void LevelScene::on_mouse_button_released(const bb::MouseButtonReleasedEvent& event) {
+    if (mouse_input) {
+        if (event.button == bb::MB_LEFT_ENUM) {
+            shoot_balls();
+        }
+    }
+
+    if (event.button == bb::MB_MIDDLE_ENUM) {
+        mouse_input = !mouse_input;
+        capture_mouse(mouse_input);
     }
 }
 

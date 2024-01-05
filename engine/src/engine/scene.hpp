@@ -46,6 +46,7 @@ namespace bb {
         float get_delta() const;
         double get_fps() const;
         void set_vsync(bool enabled);
+        void capture_mouse(bool enabled);
 
         template<typename T>
         T& user_data() {

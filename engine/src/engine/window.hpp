@@ -30,6 +30,7 @@ namespace bb {
         int get_height() const { return height; }
 
         void set_vsync(bool enabled);
+        void capture_mouse(bool enabled);
 
         void poll_events();
         void refresh() const;

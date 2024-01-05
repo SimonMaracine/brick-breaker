@@ -87,7 +87,7 @@ void Menu::on_update() {
             const auto& name {level_paths[i].second};
             const bool selected {i == static_cast<std::size_t>(level_index)};
 
-            static constexpr float scale {0.75f};
+            static constexpr float scale {0.8f};
             const auto string {selected ? "* " + name : name};
 
             const auto [width, height] {data.basic_font->get_string_size(string, scale)};

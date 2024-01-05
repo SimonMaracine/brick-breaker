@@ -3,13 +3,13 @@
 #include <glm/glm.hpp>
 
 enum class OrbType {
-    SpeedUp,  // green
-    SpeedDown,  // blue
-    ExtraLife,  // yellow
-    Die,  // black
-    FireBall,  // red
-    NormalBall,  // gray
-    ExtraBall,  // pink
+    SpeedUp,     // green
+    SpeedDown,   // blue
+    ExtraLife,   // yellow
+    Die,         // black
+    FireBall,    // red
+    NormalBall,  // grayish
+    ExtraBall,   // pink
 
     FIRST = SpeedUp,
     LAST = ExtraBall
@@ -21,18 +21,18 @@ inline const glm::vec3 ORB_COLORS[static_cast<int>(OrbType::LAST) + 1] {
     glm::vec3(0.9f, 0.9f, 0.1f),
     glm::vec3(0.01f, 0.01f, 0.01f),
     glm::vec3(1.0f, 0.1f, 0.1f),
-    glm::vec3(0.65f, 0.6f, 0.6f),
+    glm::vec3(0.8f, 0.75f, 0.75f),
     glm::vec3(1.0f, 0.0f, 1.0f)
 };
 
 inline const int ORB_POINTS[static_cast<int>(OrbType::LAST) + 1] {
+    75,
     55,
-    15,
-    5,
-    100,
-    10,
-    60,
-    5
+    25,
+    250,
+    20,
+    80,
+    15
 };
 
 class Orb {

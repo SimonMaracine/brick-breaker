@@ -28,6 +28,8 @@ struct LevelScene : public bb::Scene {
     void on_window_resized(const bb::WindowResizedEvent& event);
     void on_key_pressed(const bb::KeyPressedEvent& event);
     void on_key_released(const bb::KeyReleasedEvent& event);
+    void on_mouse_moved(const bb::MouseMovedEvent& event);
+    void on_mouse_button_released(const bb::MouseButtonReleasedEvent& event);
 
     void load_shaders();
     void load_skybox();
@@ -60,6 +62,8 @@ struct LevelScene : public bb::Scene {
 
     void draw_bounding_box(const Box& box);
     void draw_fps();
+
+    bool mouse_input {false};
 
     bb::Camera cam;
     MyCameraController cam_controller;

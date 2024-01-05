@@ -73,6 +73,12 @@ namespace bb {
         }
     }
 
+    void Window::capture_mouse(bool enabled) {
+        if (SDL_SetRelativeMouseMode(enabled ? SDL_TRUE : SDL_FALSE) < 0) {
+            throw OtherError;
+        }
+    }
+
     void Window::poll_events() {
         SDL_Event event;
 

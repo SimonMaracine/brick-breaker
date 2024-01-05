@@ -9,8 +9,8 @@ int main() {
 
     bb::ApplicationProperties properties;
     properties.title = "Brick Breaker";
-    properties.min_width = 768;
-    properties.min_height = 432;
+    properties.min_width = 896;
+    properties.min_height = 504;
     properties.samples = 4;
     properties.user_data = &data;
 
