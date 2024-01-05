@@ -6,7 +6,7 @@ enum class OrbType {
     SpeedUp,  // green
     SpeedDown,  // blue
     ExtraLife,  // yellow
-    Die,  // balck
+    Die,  // black
     FireBall,  // red
     NormalBall,  // gray
     ExtraBall,  // pink
@@ -18,20 +18,20 @@ enum class OrbType {
 inline const glm::vec3 ORB_COLORS[static_cast<int>(OrbType::LAST) + 1] {
     glm::vec3(0.1f, 0.9f, 0.1f),
     glm::vec3(0.1f, 0.1f, 0.9f),
-    glm::vec3(0.9f, 0.9f, 0.4f),
+    glm::vec3(0.9f, 0.9f, 0.1f),
     glm::vec3(0.01f, 0.01f, 0.01f),
     glm::vec3(1.0f, 0.1f, 0.1f),
-    glm::vec3(0.5f, 0.5f, 0.5f),
+    glm::vec3(0.65f, 0.6f, 0.6f),
     glm::vec3(1.0f, 0.0f, 1.0f)
 };
 
 inline const int ORB_POINTS[static_cast<int>(OrbType::LAST) + 1] {
-    50,
+    55,
     15,
     5,
     100,
     10,
-    40,
+    60,
     5
 };
 
@@ -45,7 +45,7 @@ public:
     OrbType get_type() const { return type; }
     int get_points() const { return ORB_POINTS[static_cast<int>(type)]; }
 
-    float radius {0.2f};
+    float radius {0.21f};
 
     glm::vec3 position {};
     glm::vec3 velocity {};

@@ -126,6 +126,11 @@ void LevelScene::on_update() {
     add_light(lamp_right);
     shadows(-21.0f, 20.0f, -12.0f, 12.0f, 1.0f, 20.0f, directional_light.direction * -10.0f);
 
+    if (death_flag) {
+        die();
+        death_flag = false;
+    }
+
     update_bricks();
 
     update_paddle(paddle);
@@ -285,14 +290,14 @@ void LevelScene::on_update() {
                 break;
         }
 
-        static constexpr float scale {2.0f};
+        static constexpr float scale {1.9f};
         const auto [width, height] {data.basic_font->get_string_size(string, scale)};
 
         bb::Text text;
         text.font = data.basic_font;
         text.string = string;
         text.position = glm::vec2(static_cast<float>(get_width() - width), static_cast<float>(get_height() - height)) / 2.0f;
-        text.color = glm::vec3(0.8f);
+        text.color = glm::vec3(0.85f);
         text.scale = scale;
         text.shadows = true;
         add_text(text);
@@ -938,6 +943,27 @@ void LevelScene::spawn_orb(glm::vec3 position) {
     bb::log_message("Spawned orb\n");
 }
 
+void LevelScene::win() {
+    game_over = GameOver::Won;
+    balls.clear();
+    orbs.clear();
+
+    auto& data {user_data<Data>()};
+    play_sound(data.sound_won);
+
+    bb::log_message("Congratulations!\n");
+}
+
+void LevelScene::lose() {
+    game_over = GameOver::Lost;
+    // Balls and orbs are already cleared
+
+    auto& data {user_data<Data>()};
+    play_sound(data.sound_lost);
+
+    bb::log_message("Game over!\n");
+}
+
 void LevelScene::die() {
     auto& data {user_data<Data>()};
     play_sound(data.sound_die);
@@ -952,25 +978,6 @@ void LevelScene::die() {
         paddle = Paddle();
         create_ball();
     }
-}
-
-void LevelScene::win() {
-    game_over = GameOver::Won;
-    balls.clear();
-
-    auto& data {user_data<Data>()};
-    play_sound(data.sound_won);
-
-    bb::log_message("Congratulations!\n");
-}
-
-void LevelScene::lose() {
-    game_over = GameOver::Lost;
-
-    auto& data {user_data<Data>()};
-    play_sound(data.sound_lost);
-
-    bb::log_message("Game over!\n");
 }
 
 std::optional<std::unordered_map<unsigned int, Brick>> LevelScene::load_level(const std::string& file_path, IdGenerator& gen) {
@@ -1078,15 +1085,19 @@ void LevelScene::on_ball_paddle_collision(const BallPaddleCollisionEvent& event)
 }
 
 void LevelScene::on_ball_miss(const BallMissEvent& event) {
-    balls.erase(event.ball_index);
+    if (balls.find(event.ball_index) != balls.end()) {
+        balls.erase(event.ball_index);
 
-    if (balls.empty()) {
-        die();
+        if (balls.empty()) {
+            death_flag = true;
+        }
     }
 }
 
 void LevelScene::on_orb_miss(const OrbMissEvent& event) {
-    orbs.erase(event.orb_index);
+    if (orbs.find(event.orb_index) != orbs.end()) {
+        orbs.erase(event.orb_index);
+    }
 }
 
 void LevelScene::on_orb_paddle_collision(const OrbPaddleCollisionEvent& event) {
@@ -1116,7 +1127,7 @@ void LevelScene::on_orb_paddle_collision(const OrbPaddleCollisionEvent& event) {
 
                 break;
             case OrbType::Die:
-                die();  // This invalidates current orb
+                death_flag = true;
 
                 break;
             case OrbType::FireBall:
@@ -1141,15 +1152,16 @@ void LevelScene::on_orb_paddle_collision(const OrbPaddleCollisionEvent& event) {
                 break;
         }
 
-        // It could have been already erased by die()
-        if (orbs.find(event.orb_index) != orbs.end()) {
-            orbs.erase(event.orb_index);
-        }
+        orbs.erase(event.orb_index);
     }
 }
 
 void LevelScene::on_ball_brick_collision(const BallBrickCollisionEvent& event) {
-    Ball& ball {balls.at(event.ball_index)};  // Can't fail
+    if (balls.find(event.ball_index) == balls.end()) {
+        return;
+    }
+
+    Ball& ball {balls.at(event.ball_index)};
 
     if (bricks.find(event.brick_index) != bricks.end()) {
         const Brick& brick {bricks.at(event.brick_index)};

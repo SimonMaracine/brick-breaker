@@ -46,9 +46,9 @@ struct LevelScene : public bb::Scene {
     void shoot_balls();
     void create_ball();
     void spawn_orb(glm::vec3 position);
-    void die();
     void win();
     void lose();
+    void die();  // Should be called only once per frame
     static std::optional<std::unordered_map<unsigned int, Brick>> load_level(const std::string& file_path, IdGenerator& gen);
     glm::vec2 bounce_ball_off_paddle(const Ball& ball);
     float rotate_ball(const Ball& ball);
@@ -76,6 +76,7 @@ struct LevelScene : public bb::Scene {
     std::unordered_map<unsigned int, Brick> bricks;
     std::unordered_map<unsigned int, Orb> orbs;
 
+    bool death_flag {false};
     unsigned int lives {};
     int score {};
 

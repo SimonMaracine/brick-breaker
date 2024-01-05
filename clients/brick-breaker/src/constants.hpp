@@ -2,7 +2,7 @@
 
 #include <glm/glm.hpp>
 
-inline constexpr float GROUND_LEVEL {0.307f};
+inline constexpr float GROUND_LEVEL {0.305f};
 inline constexpr float DEADLINE_Z {10.55f};
 inline constexpr float PLATFORM_EDGE_MIN_X {-9.8f};
 inline constexpr float PLATFORM_EDGE_MAX_X {9.8f};
@@ -22,4 +22,4 @@ inline constexpr int BRICKS_GRID_MAX_Y {4};
 inline constexpr float PADDLE_VELOCITY {12.0f};
 inline constexpr float BALL_RADIUS_NORMAL {0.3f};
 inline constexpr float BALL_RADIUS_FIRE {0.4f};
-inline constexpr float ORB_RATE {0.85f};
+inline constexpr float ORB_RATE {0.82f};
