@@ -51,12 +51,12 @@ void LevelScene::on_enter() {
     directional_light.diffuse_color = glm::vec3(0.8f);
     directional_light.specular_color = glm::vec3(1.0f);
 
-    lamp_left.position = LAMP_LEFT_POSITION;
+    lamp_left.position = LAMP_LIGHT_LEFT_POSITION;
     lamp_left.ambient_color = glm::vec3(0.03f);
     lamp_left.diffuse_color = glm::vec3(0.9f);
     lamp_left.specular_color = glm::vec3(1.0f);
 
-    lamp_right.position = LAMP_RIGHT_POSITION;
+    lamp_right.position = LAMP_LIGHT_RIGHT_POSITION;
     lamp_right.ambient_color = glm::vec3(0.03f);
     lamp_right.diffuse_color = glm::vec3(0.9f);
     lamp_right.specular_color = glm::vec3(1.0f);
@@ -76,6 +76,7 @@ void LevelScene::on_enter() {
     load_ball();
     load_paddle();
     load_brick();
+    load_lamp();
 
     id_gen = IdGenerator();
     paddle = Paddle();
@@ -186,6 +187,26 @@ void LevelScene::on_update() {
 #endif
     }
 
+    {
+        bb::Renderable r_lamp;
+        r_lamp.vertex_array = cache_vertex_array["lamp_stand"_H];
+        r_lamp.material = cache_material_instance["lamp_stand"_H];
+        r_lamp.scale = 0.37f;
+        r_lamp.position = LAMP_LEFT_POSITION;
+        add_renderable(r_lamp);
+
+        r_lamp.position = LAMP_RIGHT_POSITION;
+        add_renderable(r_lamp);
+
+        r_lamp.vertex_array = cache_vertex_array["lamp_bulb"_H];
+        r_lamp.material = cache_material_instance["lamp_bulb"_H];
+        r_lamp.position = LAMP_LEFT_POSITION;
+        add_renderable(r_lamp);
+
+        r_lamp.position = LAMP_RIGHT_POSITION;
+        add_renderable(r_lamp);
+    }
+
     auto& data {user_data<Data>()};
 
     {
@@ -249,6 +270,9 @@ void LevelScene::on_update() {
     }
 
 #if SHOW_DEBUG_RENDERING
+    debug_add_lamp(LAMP_LIGHT_LEFT_POSITION, glm::vec3(0.7f, 0.7f, 0.1f));
+    debug_add_lamp(LAMP_LIGHT_RIGHT_POSITION, glm::vec3(0.7f, 0.7f, 0.1f));
+
     debug_add_line(glm::vec3(-5.0f, 0.0f, 0.0f), glm::vec3(5.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     debug_add_line(glm::vec3(0.0f, -5.0f, 0.0f), glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     debug_add_line(glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -257,9 +281,6 @@ void LevelScene::on_update() {
     debug_add_line(glm::vec3(PLATFORM_EDGE_MIN_X, 0.0f, PLATFORM_EDGE_MIN_Z), glm::vec3(PLATFORM_EDGE_MAX_X, 0.0f, PLATFORM_EDGE_MIN_Z), GREEN);
     debug_add_line(glm::vec3(PLATFORM_EDGE_MIN_X, 0.0f, PLATFORM_EDGE_MIN_Z), glm::vec3(PLATFORM_EDGE_MIN_X, 0.0f, DEADLINE_Z), GREEN);
     debug_add_line(glm::vec3(PLATFORM_EDGE_MAX_X, 0.0f, PLATFORM_EDGE_MIN_Z), glm::vec3(PLATFORM_EDGE_MAX_X, 0.0f, DEADLINE_Z), GREEN);
-
-    debug_add_lamp(LAMP_LEFT_POSITION, glm::vec3(0.7f, 0.7f, 0.1f));
-    debug_add_lamp(LAMP_RIGHT_POSITION, glm::vec3(0.7f, 0.7f, 0.1f));
 
     draw_fps();
 #endif
@@ -342,7 +363,18 @@ void LevelScene::load_shaders() {
 #endif
 
     {
-        // This is also a generic shader
+        auto shader {std::make_shared<bb::Shader>(
+            "data/shaders/flat.vert",
+            "data/shaders/flat.frag"
+        )};
+
+        add_shader(shader);
+
+        auto material {cache_material.load("flat"_H, shader)};
+        material->add_uniform(bb::Material::Uniform::Vec3, "u_material.color"_H);
+    }
+
+    {
         auto shader {std::make_shared<bb::Shader>(
             "data/shaders/simple_textured_shadows.vert",
             "data/shaders/simple_textured_shadows.frag",
@@ -351,7 +383,6 @@ void LevelScene::load_shaders() {
 
         add_shader(shader);
 
-        // And a generic material
         auto material {cache_material.load("simple_textured_shadows"_H, shader)};
         material->add_texture("u_material.ambient_diffuse"_H);
         material->add_uniform(bb::Material::Uniform::Vec3, "u_material.specular"_H);
@@ -529,6 +560,80 @@ void LevelScene::load_brick() {
         material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.5f));
         material_instance->set_float("u_material.shininess"_H, 32.0f);
         material_instance->flags |= bb::Material::CastShadow;
+    }
+}
+
+void LevelScene::load_lamp() {
+    {
+        auto mesh {std::make_shared<bb::Mesh>(
+            "data/models/lamp.obj",
+            "Stand",
+            bb::Mesh::Type::PTN
+        )};
+
+        auto vertex_buffer {std::make_shared<bb::VertexBuffer>(
+            mesh->get_vertices(),
+            mesh->get_vertices_size()
+        )};
+
+        auto index_buffer {std::make_shared<bb::IndexBuffer>(
+            mesh->get_indices(),
+            mesh->get_indices_size()
+        )};
+
+        auto vertex_array {cache_vertex_array.load("lamp_stand"_H)};
+        vertex_array->configure([&](bb::VertexArray* va) {
+            bb::VertexBufferLayout layout;
+            layout.add(0, bb::VertexBufferLayout::Float, 3);
+            layout.add(1, bb::VertexBufferLayout::Float, 2);
+            layout.add(2, bb::VertexBufferLayout::Float, 3);
+
+            va->add_vertex_buffer(vertex_buffer, layout);
+            va->add_index_buffer(index_buffer);
+        });
+    }
+
+    {
+        auto mesh {std::make_shared<bb::Mesh>(
+            "data/models/lamp.obj",
+            "Bulb",
+            bb::Mesh::Type::P
+        )};
+
+        auto vertex_buffer {std::make_shared<bb::VertexBuffer>(
+            mesh->get_vertices(),
+            mesh->get_vertices_size()
+        )};
+
+        auto index_buffer {std::make_shared<bb::IndexBuffer>(
+            mesh->get_indices(),
+            mesh->get_indices_size()
+        )};
+
+        auto vertex_array {cache_vertex_array.load("lamp_bulb"_H)};
+        vertex_array->configure([&](bb::VertexArray* va) {
+            bb::VertexBufferLayout layout;
+            layout.add(0, bb::VertexBufferLayout::Float, 3);
+
+            va->add_vertex_buffer(vertex_buffer, layout);
+            va->add_index_buffer(index_buffer);
+        });
+    }
+
+    bb::TextureSpecification specification;
+    auto texture {cache_texture.load("lamp"_H, "data/textures/lamp-texture.png", specification)};
+
+    {
+        auto material_instance {cache_material_instance.load("lamp_stand"_H, cache_material["simple_textured_shadows"_H])};
+        material_instance->set_texture("u_material.ambient_diffuse"_H, texture, 0);
+        material_instance->set_vec3("u_material.specular"_H, glm::vec3(0.5f));
+        material_instance->set_float("u_material.shininess"_H, 64.0f);
+        material_instance->flags |= bb::Material::CastShadow;
+    }
+
+    {
+        auto material_instance {cache_material_instance.load("lamp_bulb"_H, cache_material["flat"_H])};
+        material_instance->set_vec3("u_material.color"_H, glm::vec3(1.0f));
     }
 }
 

@@ -120,7 +120,11 @@ namespace bb {
         }
 
         for (unsigned int i {0}; i < node->mNumChildren; i++) {
-            return find_mesh(node->mChildren[i], object_name, scene);
+            const aiMesh* mesh {find_mesh(node->mChildren[i], object_name, scene)};
+
+            if (mesh != nullptr) {
+                return mesh;
+            }
         }
 
         return nullptr;

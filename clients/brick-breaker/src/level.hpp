@@ -33,6 +33,7 @@ struct LevelScene : public bb::Scene {
     void load_ball();
     void load_paddle();
     void load_brick();
+    void load_lamp();
 
     void update_collisions();
     void update_bricks();
