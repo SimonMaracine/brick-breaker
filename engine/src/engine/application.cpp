@@ -8,6 +8,7 @@
 #include "engine/window.hpp"
 #include "engine/application_properties.hpp"
 #include "engine/scene.hpp"
+#include "engine/audio.hpp"
 #include "engine/application.hpp"
 #include "engine/info_and_debug.hpp"
 #include "engine/logging.hpp"
@@ -24,7 +25,8 @@ namespace bb {
 
         window = std::make_unique<Window>(window_properties, this);
         renderer = std::make_unique<Renderer>(properties.width, properties.height);
-        audio_manager = std::make_unique<AudioManager>();
+
+        AudioManager::initialize();
 
 #ifndef BB_RELEASE
         GlInfoDebug::initialize_debugging();
@@ -44,6 +46,8 @@ namespace bb {
             delete scene;
         }
 
+        AudioManager::uninitialize();
+
         log_message("Destroyed application\n");
     }
 
@@ -57,9 +61,9 @@ namespace bb {
             dt = calculate_delta();
 
             window->poll_events();
-            events.update();
 
             current_scene->on_update();
+            events.update();
 
             renderer->render();
 

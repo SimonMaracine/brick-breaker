@@ -6,10 +6,10 @@
 #include "engine/logging.hpp"
 
 namespace bb {
-    AudioManager::AudioManager() {
+    void AudioManager::initialize() {
         Mix_Init(0);
 
-        if (Mix_OpenAudio(44100, AUDIO_S16, 1, 4096) < 0) {
+        if (Mix_OpenAudio(44100, AUDIO_S16, 1, 2048) < 0) {
             log_message("Could not open audio device\n");
             throw InitializationError;
         }
@@ -19,7 +19,7 @@ namespace bb {
         }
     }
 
-    AudioManager::~AudioManager() {
+    void AudioManager::uninitialize() {
         Mix_CloseAudio();
         Mix_Quit();
     }

@@ -7,7 +7,6 @@
 
 #include "engine/events.hpp"
 #include "engine/window.hpp"
-#include "engine/audio.hpp"
 #include "engine/application_properties.hpp"
 #include "engine/renderer.hpp"
 
@@ -42,7 +41,6 @@ namespace bb {
         EventSystem events;
         std::unique_ptr<Window> window;
         std::unique_ptr<Renderer> renderer;
-        std::unique_ptr<AudioManager> audio_manager;
 
         bool running {true};
         float dt {0.0f};

@@ -16,6 +16,7 @@ namespace bb {
 
     struct KeyPressedEvent {
         KeyCode key;
+        bool repeat;
     };
 
     struct KeyReleasedEvent {

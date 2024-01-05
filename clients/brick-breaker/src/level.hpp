@@ -40,6 +40,8 @@ struct LevelScene : public bb::Scene {
     void update_ball(Ball& ball);
     void shoot_balls();
     void create_ball();
+    void win();
+    void lose();
     static std::optional<std::unordered_map<unsigned int, Brick>> load_level(const std::string& file_path, IdGenerator& gen);
     glm::vec2 bounce_ball_off_paddle(const Ball& ball);
     void on_ball_paddle_collision(const BallPaddleCollisionEvent& event);

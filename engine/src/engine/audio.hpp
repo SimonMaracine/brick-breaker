@@ -5,18 +5,12 @@
 #include "engine/sound_data.hpp"
 
 namespace bb {
-    class AudioManager {
-    public:
-        AudioManager();
-        ~AudioManager();
+    struct AudioManager {
+        static void initialize();
+        static void uninitialize();
 
-        AudioManager(const AudioManager&) = delete;
-        AudioManager& operator=(const AudioManager&) = delete;
-        AudioManager(AudioManager&&) = delete;
-        AudioManager& operator=(AudioManager&&) = delete;
-
-        void play_sound(std::shared_ptr<SoundData> sound_data);
-        void pause_sound();
-        void resume_sound();
+        static void play_sound(std::shared_ptr<SoundData> sound_data);
+        static void pause_sound();
+        static void resume_sound();
     };
 }

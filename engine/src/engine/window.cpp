@@ -1,5 +1,9 @@
 #include <string>
 
+#ifdef BB_CHRONO_TIMER
+    #include <chrono>
+#endif
+
 #include <glad/glad.h>
 #include <SDL.h>
 
@@ -93,7 +97,10 @@ namespace bb {
 
                     break;
                 case SDL_KEYDOWN:
-                    application->events.enqueue<KeyPressedEvent>(static_cast<KeyCode>(event.key.keysym.sym));
+                    application->events.enqueue<KeyPressedEvent>(
+                        static_cast<KeyCode>(event.key.keysym.sym),
+                        static_cast<bool>(event.key.repeat)
+                    );
 
                     break;
                 case SDL_KEYUP:
@@ -139,6 +146,10 @@ namespace bb {
     }
 
     double Window::get_time() {
+#ifdef BB_CHRONO_TIMER
+        return std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch()).count();
+#else
         return static_cast<double>(SDL_GetTicks64()) / 1000.0;
+#endif
     }
 }

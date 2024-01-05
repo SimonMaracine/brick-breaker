@@ -87,7 +87,7 @@ void Menu::on_update() {
             const auto& name {level_paths[i].second};
             const bool selected {i == static_cast<std::size_t>(level_index)};
 
-            const auto scale {0.6f};
+            const auto scale {0.7f};
             const auto string {selected ? "* " + name : name};
 
             const auto [width, height] {data.basic_font->get_string_size(string, scale)};
@@ -116,9 +116,11 @@ void Menu::on_key_released(const bb::KeyReleasedEvent& event) {
     switch (event.key) {
         case bb::KeyCode::K_UP:
             level_index = level_index - 1 < 0 ? static_cast<int>(level_paths.size() - 1u) : level_index - 1;
+            play_sound(data.sound_switch);
             break;
         case bb::KeyCode::K_DOWN:
             level_index = (level_index + 1) % static_cast<int>(level_paths.size());
+            play_sound(data.sound_switch);
             break;
         case bb::KeyCode::K_RETURN:
             data.selected_level = level_paths.at(level_index).first;
@@ -126,9 +128,6 @@ void Menu::on_key_released(const bb::KeyReleasedEvent& event) {
             break;
         case bb::KeyCode::K_l:
             reload_levels();
-            break;
-        case bb::KeyCode::K_b:
-            play_sound(data.sound_restart);
             break;
         default:
             break;
@@ -181,13 +180,14 @@ void Menu::load_sounds() {
     auto& data {user_data<Data>()};
 
     data.sound_start = std::make_shared<bb::SoundData>("data/sounds/start.wav");
+    data.sound_start_failure = std::make_shared<bb::SoundData>("data/sounds/start_failure.wav");
     data.sound_collision_brick = std::make_shared<bb::SoundData>("data/sounds/pop.wav");
     data.sound_collision_paddle = std::make_shared<bb::SoundData>("data/sounds/spring-bouncing.wav");
     data.sound_collision_wall = std::make_shared<bb::SoundData>("data/sounds/plastic-hit.wav");
     data.sound_missed_ball = std::make_shared<bb::SoundData>("data/sounds/missed-ball.wav");
     data.sound_lost = std::make_shared<bb::SoundData>("data/sounds/lost.wav");
     data.sound_won = std::make_shared<bb::SoundData>("data/sounds/won.wav");
-    data.sound_restart = std::make_shared<bb::SoundData>("data/sounds/restart.wav");
+    data.sound_switch = std::make_shared<bb::SoundData>("data/sounds/switch.wav");
 }
 
 std::optional<std::string> Menu::get_level_name(const std::string& file_path) {

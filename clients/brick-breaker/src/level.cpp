@@ -89,16 +89,16 @@ void LevelScene::on_enter() {
     const auto level {load_level(data.selected_level, id_gen)};
 
     if (!level) {
-        bb::log_message("Could not load level\n");
+        bb::log_message("Could not load level!\n");
+        play_sound(data.sound_start_failure);
     } else {
         bricks = std::move(*level);
+        play_sound(data.sound_start);
     }
 
     lives = 3u;
     score = 0;
     game_over = GameOver::None;
-
-    play_sound(data.sound_start);
 }
 
 void LevelScene::on_exit() {
@@ -271,15 +271,17 @@ void LevelScene::on_window_resized(const bb::WindowResizedEvent& event) {
 }
 
 void LevelScene::on_key_pressed(const bb::KeyPressedEvent& event) {
-    switch (event.key) {
-        case bb::KeyCode::K_LEFT:
-            paddle.velocity_x = -PADDLE_VELOCITY;
-            break;
-        case bb::KeyCode::K_RIGHT:
-            paddle.velocity_x = PADDLE_VELOCITY;
-            break;
-        default:
-            break;
+    if (!event.repeat) {
+        switch (event.key) {
+            case bb::KeyCode::K_LEFT:
+                paddle.velocity_x = -PADDLE_VELOCITY;
+                break;
+            case bb::KeyCode::K_RIGHT:
+                paddle.velocity_x = PADDLE_VELOCITY;
+                break;
+            default:
+                break;
+        }
     }
 }
 
@@ -304,8 +306,25 @@ void LevelScene::on_key_released(const bb::KeyReleasedEvent& event) {
 }
 
 void LevelScene::load_shaders() {
+#if 0
     {
         // This is a generic shader
+        auto shader {std::make_shared<bb::Shader>(
+            "data/shaders/simple.vert",
+            "data/shaders/simple.frag"
+        )};
+
+        add_shader(shader);
+
+        // And a generic material
+        auto material {cache_material.load("simple"_H, shader)};
+        material->add_uniform(bb::Material::Uniform::Vec3, "u_material.ambient_diffuse"_H);
+        material->add_uniform(bb::Material::Uniform::Vec3, "u_material.specular"_H);
+        material->add_uniform(bb::Material::Uniform::Float, "u_material.shininess"_H);
+    }
+
+    {
+        // This is also a generic shader
         auto shader {std::make_shared<bb::Shader>(
             "data/shaders/simple_textured.vert",
             "data/shaders/simple_textured.frag",
@@ -320,22 +339,7 @@ void LevelScene::load_shaders() {
         material->add_uniform(bb::Material::Uniform::Vec3, "u_material.specular"_H);
         material->add_uniform(bb::Material::Uniform::Float, "u_material.shininess"_H);
     }
-
-    {
-        // This is also a generic shader
-        auto shader {std::make_shared<bb::Shader>(
-            "data/shaders/simple.vert",
-            "data/shaders/simple.frag"
-        )};
-
-        add_shader(shader);
-
-        // And a generic material
-        auto material {cache_material.load("simple"_H, shader)};
-        material->add_uniform(bb::Material::Uniform::Vec3, "u_material.ambient_diffuse"_H);
-        material->add_uniform(bb::Material::Uniform::Vec3, "u_material.specular"_H);
-        material->add_uniform(bb::Material::Uniform::Float, "u_material.shininess"_H);
-    }
+#endif
 
     {
         // This is also a generic shader
@@ -599,12 +603,15 @@ void LevelScene::update_bricks() {
 void LevelScene::update_paddle(Paddle& paddle) {
     paddle.set_position(paddle.get_position().x + paddle.velocity_x * get_delta());
 
-    if (paddle.get_position().x < PLATFORM_EDGE_MIN_X) {
-        paddle.set_position(PLATFORM_EDGE_MIN_X);
+    static constexpr float min {PLATFORM_EDGE_MIN_X + 0.7f};
+    static constexpr float max {PLATFORM_EDGE_MAX_X - 0.7f};
+
+    if (paddle.get_position().x < min) {
+        paddle.set_position(min);
     }
 
-    if (paddle.get_position().x > PLATFORM_EDGE_MAX_X) {
-        paddle.set_position(PLATFORM_EDGE_MAX_X);
+    if (paddle.get_position().x > max) {
+        paddle.set_position(max);
     }
 }
 
@@ -660,17 +667,45 @@ void LevelScene::update_ball(Ball& ball) {
 }
 
 void LevelScene::shoot_balls() {
+    bool any_ball {false};
+
     for (auto& [_, ball] : balls) {
         if (ball.attached_to_paddle) {
             ball.velocity = glm::vec3(glm::linearRand(-5.0f, 5.0f), 0.0f, -SHOOT_VELOCITY_Z);
             ball.attached_to_paddle = false;
+
+            any_ball = true;
         }
+    }
+
+    if (any_ball) {
+        auto& data {user_data<Data>()};
+        play_sound(data.sound_collision_paddle);
     }
 }
 
 void LevelScene::create_ball() {
     const auto index {id_gen.generate()};
     balls[index] = Ball(index);
+}
+
+void LevelScene::win() {
+    game_over = GameOver::Won;
+    balls.clear();
+
+    auto& data {user_data<Data>()};
+    play_sound(data.sound_won);
+
+    bb::log_message("Congratulations!\n");
+}
+
+void LevelScene::lose() {
+    game_over = GameOver::Lost;
+
+    auto& data {user_data<Data>()};
+    play_sound(data.sound_lost);
+
+    bb::log_message("Game over!\n");
 }
 
 std::optional<std::unordered_map<unsigned int, Brick>> LevelScene::load_level(const std::string& file_path, IdGenerator& gen) {
@@ -739,28 +774,30 @@ glm::vec2 LevelScene::bounce_ball_off_paddle(const Ball& ball) {
 }
 
 void LevelScene::on_ball_paddle_collision(const BallPaddleCollisionEvent& event) {
-    Ball& ball {balls.at(event.ball_index)};  // TODO can fail
+    if (balls.find(event.ball_index) != balls.end()) {
+        Ball& ball {balls.at(event.ball_index)};
 
-    switch (event.side) {
-        case SphereBoxSide::Back: {
-            const auto velocity {bounce_ball_off_paddle(ball)};
+        switch (event.side) {
+            case SphereBoxSide::Back: {
+                const auto velocity {bounce_ball_off_paddle(ball)};
 
-            ball.set_position_z(paddle.get_position().z - paddle.get_dimensions().z - ball.radius);
-            ball.velocity.z = -velocity.y;
-            ball.velocity.x = velocity.x;
+                ball.set_position_z(paddle.get_position().z - paddle.get_dimensions().z - ball.radius);
+                ball.velocity.z = -velocity.y;
+                ball.velocity.x = velocity.x;
 
-            break;
+                break;
+            }
+            case SphereBoxSide::Left:
+                ball.set_position_x(paddle.get_position().x - paddle.get_dimensions().x - ball.radius);
+                ball.velocity.x *= -1;
+                break;
+            case SphereBoxSide::Right:
+                ball.set_position_x(paddle.get_position().x + paddle.get_dimensions().x + ball.radius);
+                ball.velocity.x *= -1;
+                break;
+            default:
+                break;
         }
-        case SphereBoxSide::Left:
-            ball.set_position_x(paddle.get_position().x - paddle.get_dimensions().x - ball.radius);
-            ball.velocity.x *= -1;
-            break;
-        case SphereBoxSide::Right:
-            ball.set_position_x(paddle.get_position().x + paddle.get_dimensions().x + ball.radius);
-            ball.velocity.x *= -1;
-            break;
-        default:
-            break;
     }
 
     auto& data {user_data<Data>()};
@@ -768,7 +805,7 @@ void LevelScene::on_ball_paddle_collision(const BallPaddleCollisionEvent& event)
 }
 
 void LevelScene::on_ball_miss(const BallMissEvent& event) {
-    Ball& ball {balls.at(event.ball_index)};  // TODO can fail
+    Ball& ball {balls.at(event.ball_index)};  // Can't fail
 
     balls.erase(ball.get_index());
 
@@ -780,10 +817,7 @@ void LevelScene::on_ball_miss(const BallMissEvent& event) {
         lives--;
 
         if (lives == 0) {
-            bb::log_message("Game over!\n");
-            game_over = GameOver::Lost;
-
-            play_sound(data.sound_lost);
+            lose();
         } else {
             paddle = Paddle();
             create_ball();
@@ -792,45 +826,40 @@ void LevelScene::on_ball_miss(const BallMissEvent& event) {
 }
 
 void LevelScene::on_ball_brick_collision(const BallBrickCollisionEvent& event) {
-    Ball& ball {balls.at(event.ball_index)};  // TODO can fail
+    Ball& ball {balls.at(event.ball_index)};  // Can't fail
 
-    const Brick& brick {bricks.at(event.brick_index)};
+    if (bricks.find(event.brick_index) != bricks.end()) {
+        const Brick& brick {bricks.at(event.brick_index)};
 
-    // TODO fire ball
-    switch (event.side) {
-        case SphereBoxSide::Front:
-            ball.set_position_z(brick.get_position().z + brick.get_dimensions().z + ball.radius);
-            ball.velocity.z *= -1.0f;
-            break;
-        case SphereBoxSide::Back:
-            ball.set_position_z(brick.get_position().z - brick.get_dimensions().z - ball.radius);
-            ball.velocity.z *= -1.0f;
-            break;
-        case SphereBoxSide::Left:
-            ball.set_position_x(brick.get_position().x - brick.get_dimensions().x - ball.radius);
-            ball.velocity.x *= -1.0f;
-            break;
-        case SphereBoxSide::Right:
-            ball.set_position_x(brick.get_position().x + brick.get_dimensions().x + ball.radius);
-            ball.velocity.x *= -1.0f;
-            break;
-    }
+        // TODO fire ball
+        switch (event.side) {
+            case SphereBoxSide::Front:
+                ball.set_position_z(brick.get_position().z + brick.get_dimensions().z + ball.radius);
+                ball.velocity.z *= -1.0f;
+                break;
+            case SphereBoxSide::Back:
+                ball.set_position_z(brick.get_position().z - brick.get_dimensions().z - ball.radius);
+                ball.velocity.z *= -1.0f;
+                break;
+            case SphereBoxSide::Left:
+                ball.set_position_x(brick.get_position().x - brick.get_dimensions().x - ball.radius);
+                ball.velocity.x *= -1.0f;
+                break;
+            case SphereBoxSide::Right:
+                ball.set_position_x(brick.get_position().x + brick.get_dimensions().x + ball.radius);
+                ball.velocity.x *= -1.0f;
+                break;
+        }
 
-    auto& data {user_data<Data>()};
+        score += brick.get_score();
+        bricks.erase(event.brick_index);
 
-    play_sound(data.sound_collision_brick);
+        auto& data {user_data<Data>()};
+        play_sound(data.sound_collision_brick);
 
-    score += brick.get_score();
-
-    bricks.erase(event.brick_index);
-
-    if (bricks.empty()) {
-        bb::log_message("Congratulations!\n");
-        game_over = GameOver::Won;
-
-        balls.clear();
-
-        play_sound(data.sound_won);
+        if (bricks.empty()) {
+            win();
+        }
     }
 }
 

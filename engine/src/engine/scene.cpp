@@ -4,6 +4,7 @@
 #include "engine/events.hpp"
 #include "engine/scene.hpp"
 #include "engine/application.hpp"
+#include "engine/audio.hpp"
 
 namespace bb {
     void Scene::change_scene(const std::string& scene_name) {
@@ -95,14 +96,14 @@ namespace bb {
     }
 
     void Scene::play_sound(std::shared_ptr<SoundData> sound_data) {
-        application->audio_manager->play_sound(sound_data);
+        AudioManager::play_sound(sound_data);
     }
 
     void Scene::pause_sound() {
-        application->audio_manager->pause_sound();
+        AudioManager::pause_sound();
     }
 
     void Scene::resume_sound() {
-        application->audio_manager->resume_sound();
+        AudioManager::resume_sound();
     }
 }

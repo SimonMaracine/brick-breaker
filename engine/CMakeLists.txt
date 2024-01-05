@@ -127,4 +127,14 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
         "NDEBUG"
         "BB_RELEASE"
     )
+
+    message(STATUS "BB: Building in release mode")
+endif()
+
+if(BB_CHRONO_TIMER)
+    target_compile_definitions(bb-engine PRIVATE
+        "BB_CHRONO_TIMER"
+    )
+
+    message(STATUS "BB: Using chrono timer instead of SDL2 one")
 endif()
