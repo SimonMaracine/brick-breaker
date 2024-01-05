@@ -1096,6 +1096,8 @@ void LevelScene::on_orb_paddle_collision(const OrbPaddleCollisionEvent& event) {
         auto& data {user_data<Data>()};
         play_sound(data.sound_switch);
 
+        score += orb.get_points();
+
         switch (orb.get_type()) {
             case OrbType::SpeedUp:
                 for (auto& [_, ball] : balls) {
@@ -1114,7 +1116,7 @@ void LevelScene::on_orb_paddle_collision(const OrbPaddleCollisionEvent& event) {
 
                 break;
             case OrbType::Die:
-                die();
+                die();  // This invalidates current orb
 
                 break;
             case OrbType::FireBall:
@@ -1138,8 +1140,6 @@ void LevelScene::on_orb_paddle_collision(const OrbPaddleCollisionEvent& event) {
             default:
                 break;
         }
-
-        score += orb.get_points();
 
         // It could have been already erased by die()
         if (orbs.find(event.orb_index) != orbs.end()) {
