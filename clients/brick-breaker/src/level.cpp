@@ -748,36 +748,43 @@ void LevelScene::load_orb() {
     {
         auto material_instance {cache_material_instance.load("orb0"_H, cache_material["flat"_H])};
         material_instance->set_vec3("u_material.color"_H, ORB_COLORS[static_cast<int>(OrbType::SpeedUp)]);
+        material_instance->flags |= bb::Material::CastShadow;
     }
 
     {
         auto material_instance {cache_material_instance.load("orb1"_H, cache_material["flat"_H])};
         material_instance->set_vec3("u_material.color"_H, ORB_COLORS[static_cast<int>(OrbType::SpeedDown)]);
+        material_instance->flags |= bb::Material::CastShadow;
     }
 
     {
         auto material_instance {cache_material_instance.load("orb2"_H, cache_material["flat"_H])};
         material_instance->set_vec3("u_material.color"_H, ORB_COLORS[static_cast<int>(OrbType::ExtraLife)]);
+        material_instance->flags |= bb::Material::CastShadow;
     }
 
     {
         auto material_instance {cache_material_instance.load("orb3"_H, cache_material["flat"_H])};
         material_instance->set_vec3("u_material.color"_H, ORB_COLORS[static_cast<int>(OrbType::Die)]);
+        material_instance->flags |= bb::Material::CastShadow;
     }
 
     {
         auto material_instance {cache_material_instance.load("orb4"_H, cache_material["flat"_H])};
         material_instance->set_vec3("u_material.color"_H, ORB_COLORS[static_cast<int>(OrbType::FireBall)]);
+        material_instance->flags |= bb::Material::CastShadow;
     }
 
     {
         auto material_instance {cache_material_instance.load("orb5"_H, cache_material["flat"_H])};
         material_instance->set_vec3("u_material.color"_H, ORB_COLORS[static_cast<int>(OrbType::NormalBall)]);
+        material_instance->flags |= bb::Material::CastShadow;
     }
 
     {
         auto material_instance {cache_material_instance.load("orb6"_H, cache_material["flat"_H])};
         material_instance->set_vec3("u_material.color"_H, ORB_COLORS[static_cast<int>(OrbType::ExtraBall)]);
+        material_instance->flags |= bb::Material::CastShadow;
     }
 }
 

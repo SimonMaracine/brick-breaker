@@ -22,4 +22,4 @@ inline constexpr int BRICKS_GRID_MAX_Y {4};
 inline constexpr float PADDLE_VELOCITY {13.0f};
 inline constexpr float BALL_RADIUS_NORMAL {0.3f};
 inline constexpr float BALL_RADIUS_FIRE {0.4f};
-inline constexpr float ORB_RATE {0.82f};
+inline constexpr float ORB_RATE {0.8f};
