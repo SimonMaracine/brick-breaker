@@ -626,16 +626,17 @@ void LevelScene::update_ball(Ball& ball) {
     }
 
     const auto perpendicular_velocity {glm::rotate(glm::normalize(ball.velocity), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f))};
+    const float current_rotation {rotate_ball(ball)};
 
     glm::mat4 trans {glm::mat4(1.0f)};
     trans = glm::translate(trans, ball.get_position());
     trans *= glm::toMat4(ball.rotation);
-    trans = glm::rotate(trans, glm::length(ball.velocity) * 0.1f, perpendicular_velocity);  // TODO
+    trans = glm::rotate(trans, current_rotation, perpendicular_velocity);
     trans = glm::scale(trans, glm::vec3(ball.radius));  // Default ball size should be 1 meter in radius, so radius is scale
 
     ball.transformation = trans;
 
-    const glm::quat rot {glm::angleAxis(glm::length(ball.velocity) * 0.01f, perpendicular_velocity)};
+    const glm::quat rot {glm::angleAxis(current_rotation, perpendicular_velocity)};
     ball.rotation = rot * ball.rotation;
 
     auto& data {user_data<Data>()};
@@ -671,7 +672,10 @@ void LevelScene::shoot_balls() {
 
     for (auto& [_, ball] : balls) {
         if (ball.attached_to_paddle) {
-            ball.velocity = glm::vec3(glm::linearRand(-5.0f, 5.0f), 0.0f, -SHOOT_VELOCITY_Z);
+            const auto vector {glm::vec3(glm::linearRand(-5.0f, 5.0f), 0.0f, -5.0f)};
+            const auto direction {glm::normalize(vector)};
+
+            ball.velocity = direction * SHOOT_VELOCITY;
             ball.attached_to_paddle = false;
 
             any_ball = true;
@@ -771,6 +775,14 @@ glm::vec2 LevelScene::bounce_ball_off_paddle(const Ball& ball) {
     const float directed_theta {paddle.get_position().x - ball.get_position().x > 0.0f ? theta + 90.0f : -theta + 90.0f};
 
     return glm::vec2(original_velocity * glm::cos(glm::radians(directed_theta)), original_velocity * glm::sin(glm::radians(directed_theta)));
+}
+
+float LevelScene::rotate_ball(const Ball& ball) {
+    const float velocity {glm::length(ball.velocity) * get_delta()};
+    const float half_diameter {glm::pi<float>() * ball.radius};
+    const float theta {velocity / half_diameter};  // Radians
+
+    return theta;
 }
 
 void LevelScene::on_ball_paddle_collision(const BallPaddleCollisionEvent& event) {

@@ -13,7 +13,7 @@ layout(shared, binding = 0) uniform ProjectionView {
 };
 
 void main() {
-    v_normal = mat3(transpose(inverse(u_model_matrix))) * a_normal;  // TODO only uniform scaling
+    v_normal = mat3(transpose(inverse(u_model_matrix))) * a_normal;
     v_fragment_position = vec3(u_model_matrix * vec4(a_position, 1.0));
 
     gl_Position = u_projection_view_matrix * u_model_matrix * vec4(a_position, 1.0);

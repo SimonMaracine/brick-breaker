@@ -11,7 +11,6 @@ struct Material {
     vec3 specular;
 
     float shininess;
-    // TODO here could also be normal or emission maps
 };
 
 uniform Material u_material;
@@ -42,7 +41,7 @@ layout(shared, binding = 3) uniform PointLight {
     PointLightStruct u_point_lights[POINT_LIGHTS];
 };
 
-layout(shared, binding = 2) uniform ViewPosition {  // TODO maybe just do calculations in view space
+layout(shared, binding = 2) uniform ViewPosition {
     vec3 u_view_position;
 };
 
@@ -103,7 +102,7 @@ void main() {
     vec3 color = calculate_directional_light();
 
     for (int i = 0; i < POINT_LIGHTS; i++) {
-        color += calculate_point_light(i);  // FIXME optimize this
+        color += calculate_point_light(i);
     }
 
     fragment_color = vec4(color, 1.0);

@@ -87,7 +87,7 @@ void Menu::on_update() {
             const auto& name {level_paths[i].second};
             const bool selected {i == static_cast<std::size_t>(level_index)};
 
-            const auto scale {0.7f};
+            const auto scale {0.75f};
             const auto string {selected ? "* " + name : name};
 
             const auto [width, height] {data.basic_font->get_string_size(string, scale)};
@@ -180,7 +180,7 @@ void Menu::load_sounds() {
     auto& data {user_data<Data>()};
 
     data.sound_start = std::make_shared<bb::SoundData>("data/sounds/start.wav");
-    data.sound_start_failure = std::make_shared<bb::SoundData>("data/sounds/start_failure.wav");
+    data.sound_start_failure = std::make_shared<bb::SoundData>("data/sounds/start-failure.wav");
     data.sound_collision_brick = std::make_shared<bb::SoundData>("data/sounds/pop.wav");
     data.sound_collision_paddle = std::make_shared<bb::SoundData>("data/sounds/spring-bouncing.wav");
     data.sound_collision_wall = std::make_shared<bb::SoundData>("data/sounds/plastic-hit.wav");

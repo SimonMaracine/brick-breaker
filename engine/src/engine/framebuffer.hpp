@@ -29,7 +29,7 @@ namespace bb {
 
     struct FramebufferSpecification {
         // Must be specified
-        int width {0};  // TODO reorder members
+        int width {0};
         int height {0};
 
         // At least one of these two must be specified
@@ -42,7 +42,7 @@ namespace bb {
         bool white_border_for_depth_texture {false};
 
         // Color attachment clearing stuff
-        int clear_drawbuffer {0};  // TODO put in a struct
+        int clear_drawbuffer {0};
         float color_clear_value[4] {};
     };
 
@@ -67,11 +67,11 @@ namespace bb {
         void resize(int width, int height);
 
         // Read pixels from some buffer
-        float read_pixel_float(int attachment_index, int x, int y) const;  // TODO read value is float; should be generic
+        float read_pixel_float(int attachment_index, int x, int y) const;
         void read_pixel_float_pbo(int attachment_index, int x, int y) const;
 
         // Clear some buffer
-        void clear_color_attachment_float() const;  // TODO should be generic
+        void clear_color_attachment_float() const;
 
         // Resolve this to draw_framebuffer
         void blit(const Framebuffer* draw_framebuffer, int width, int height) const;

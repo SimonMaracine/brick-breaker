@@ -44,6 +44,7 @@ struct LevelScene : public bb::Scene {
     void lose();
     static std::optional<std::unordered_map<unsigned int, Brick>> load_level(const std::string& file_path, IdGenerator& gen);
     glm::vec2 bounce_ball_off_paddle(const Ball& ball);
+    float rotate_ball(const Ball& ball);
     void on_ball_paddle_collision(const BallPaddleCollisionEvent& event);
     void on_ball_miss(const BallMissEvent& event);
     void on_ball_brick_collision(const BallBrickCollisionEvent& event);

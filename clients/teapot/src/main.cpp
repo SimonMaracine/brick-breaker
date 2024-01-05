@@ -128,7 +128,7 @@ struct MainScene : public bb::Scene {
         bb::log_message("KeyPressed: %d\n", static_cast<int>(event.key));
 
         if (event.key == bb::KeyCode::K_f) {
-            bb::log_message("%f - %f\n", get_delta(), get_fps());  // FIXME not accurate
+            bb::log_message("%f - %f\n", get_delta(), get_fps());
         }
     }
 

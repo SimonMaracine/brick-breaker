@@ -296,8 +296,6 @@ namespace bb {
 
         UniformBuffer::unbind();
 
-        // TODO draw to depth buffer for shadows
-
         storage.shadow_map_framebuffer->bind();
 
         OpenGl::clear(OpenGl::Buffers::D);
