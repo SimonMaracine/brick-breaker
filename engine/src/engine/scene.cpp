@@ -63,6 +63,10 @@ namespace bb {
         application->renderer->shadows(left, right, bottom, top, lens_near, lens_far, position);
     }
 
+    void Scene::skybox(std::shared_ptr<TextureCubemap> texture) {
+        application->renderer->skybox(texture);
+    }
+
     void Scene::add_renderable(const Renderable& renderable) {
         application->renderer->add_renderable(renderable);
     }

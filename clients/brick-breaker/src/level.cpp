@@ -20,6 +20,7 @@
 
 // https://www.goodtextures.com/image/19536/wood-bare-0256
 // https://stackoverflow.com/questions/39280104/how-to-get-current-camera-position-from-view-matrix
+// https://opengameart.org/content/space-skyboxes-0
 
 using namespace resmanager::literals;
 
@@ -74,12 +75,15 @@ void LevelScene::on_enter() {
     bb::OpenGl::clear_color(0.1f, 0.1f, 0.15f);
 
     load_shaders();
+    load_skybox();
     load_platform();
     load_ball();
     load_paddle();
     load_brick();
     load_lamp();
     load_orb();
+
+    skybox(cache_texture_cubemap["skybox"_H]);
 
     id_gen = IdGenerator();
     paddle = Paddle();
@@ -90,7 +94,7 @@ void LevelScene::on_enter() {
     auto& data {user_data<Data>()};
 
     bricks.clear();
-    const auto level {load_level(data.selected_level, id_gen)};
+    auto level {load_level(data.selected_level, id_gen)};
 
     if (!level) {
         bb::log_message("Could not load level!\n");
@@ -100,13 +104,15 @@ void LevelScene::on_enter() {
         play_sound(data.sound_start);
     }
 
+    orbs.clear();
+
     lives = 3u;
     score = 0;
     game_over = GameOver::None;
 }
 
 void LevelScene::on_exit() {
-
+    skybox(nullptr);
 }
 
 void LevelScene::on_update() {
@@ -411,6 +417,19 @@ void LevelScene::load_shaders() {
         material->add_uniform(bb::Material::Uniform::Vec3, "u_material.specular"_H);
         material->add_uniform(bb::Material::Uniform::Float, "u_material.shininess"_H);
     }
+}
+
+void LevelScene::load_skybox() {
+    const char* textures[] {
+        "data/textures/skybox/right.png",
+        "data/textures/skybox/left.png",
+        "data/textures/skybox/top.png",
+        "data/textures/skybox/bottom.png",
+        "data/textures/skybox/front.png",
+        "data/textures/skybox/back.png"
+    };
+
+    cache_texture_cubemap.load("skybox"_H, textures);
 }
 
 void LevelScene::load_platform() {
@@ -915,6 +934,8 @@ void LevelScene::spawn_orb(glm::vec3 position) {
 
     const auto index {id_gen.generate()};
     orbs[index] = Orb(index, position.x, position.z, velocity, static_cast<OrbType>(static_cast<int>(random_type)));
+
+    bb::log_message("Spawned orb\n");
 }
 
 void LevelScene::die() {
@@ -1155,7 +1176,6 @@ void LevelScene::on_ball_brick_collision(const BallBrickCollisionEvent& event) {
         }
 
         score += brick.get_points();
-        bricks.erase(event.brick_index);
 
         auto& data {user_data<Data>()};
         play_sound(data.sound_collision_brick);
@@ -1163,6 +1183,8 @@ void LevelScene::on_ball_brick_collision(const BallBrickCollisionEvent& event) {
         if (glm::linearRand(0.0f, 1.0f) > ORB_RATE) {
             spawn_orb(brick.get_position());
         }
+
+        bricks.erase(event.brick_index);
 
         if (bricks.empty()) {
             win();

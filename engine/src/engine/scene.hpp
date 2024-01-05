@@ -19,6 +19,7 @@ namespace bb {
     struct DirectionalLight;
     struct PointLight;
     class Shader;
+    class TextureCubemap;
 
     class Scene {
     public:
@@ -89,6 +90,7 @@ namespace bb {
             float lens_far,
             glm::vec3 position
         );
+        void skybox(std::shared_ptr<TextureCubemap> texture);
 
         void add_renderable(const Renderable& renderable);
         void add_light(const DirectionalLight& light);

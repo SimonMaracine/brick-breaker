@@ -30,6 +30,7 @@ struct LevelScene : public bb::Scene {
     void on_key_released(const bb::KeyReleasedEvent& event);
 
     void load_shaders();
+    void load_skybox();
     void load_platform();
     void load_ball();
     void load_paddle();
@@ -89,4 +90,5 @@ struct LevelScene : public bb::Scene {
     resmanager::Cache<bb::MaterialInstance> cache_material_instance;
     resmanager::Cache<bb::Texture> cache_texture;
     resmanager::Cache<bb::Material> cache_material;
+    resmanager::Cache<bb::TextureCubemap> cache_texture_cubemap;
 };

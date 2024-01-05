@@ -73,6 +73,7 @@ namespace bb {
 
     class TextureCubemap {
     public:
+        // Textures need to be RGBA
         TextureCubemap(const char** file_paths);
         TextureCubemap(const std::array<std::shared_ptr<TextureData>, 6>& data);
         ~TextureCubemap();

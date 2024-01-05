@@ -20,6 +20,7 @@ namespace bb {
     struct Camera;
     struct Camera2D;
     class Font;
+    class TextureCubemap;
 
     class Renderer {
     public:
@@ -44,6 +45,7 @@ namespace bb {
             float lens_far,
             glm::vec3 position
         );
+        void skybox(std::shared_ptr<TextureCubemap> texture);
 
         // 3D API
         void add_renderable(const Renderable& renderable);
@@ -76,6 +78,7 @@ namespace bb {
         void draw_renderable(const Renderable& renderable);
 
         void draw_renderables_to_depth_buffer();
+        void draw_skybox();
 
         void draw_strings();
         void draw_string(const Text& text);
@@ -92,8 +95,12 @@ namespace bb {
             std::unique_ptr<Shader> screen_quad_shader;
             std::shared_ptr<Shader> shadow_shader;
             std::unique_ptr<Shader> text_shader;
+            std::shared_ptr<Shader> skybox_shader;
 
             std::unique_ptr<VertexArray> screen_quad_vertex_array;
+            std::shared_ptr<VertexArray> skybox_vertex_array;
+
+            std::shared_ptr<TextureCubemap> skybox_texture;
 
             std::unordered_map<unsigned int, std::weak_ptr<UniformBuffer>> uniform_buffers;
             std::weak_ptr<UniformBuffer> projection_view_uniform_buffer;

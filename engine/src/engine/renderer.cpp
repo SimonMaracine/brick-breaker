@@ -88,9 +88,6 @@ namespace bb {
         }
 
         {
-            // Doesn't have uniform buffers for sure
-            storage.screen_quad_shader = std::make_unique<Shader>("data/shaders/screen_quad.vert", "data/shaders/screen_quad.frag");
-
             const float vertices[] {
                 -1.0f,  1.0f,
                 -1.0f, -1.0f,
@@ -100,15 +97,32 @@ namespace bb {
                  1.0f, -1.0f
             };
 
-            auto screen_quad_vertex_buffer {std::make_shared<VertexBuffer>(vertices, sizeof(vertices))};
+            auto buffer {std::make_shared<VertexBuffer>(vertices, sizeof(vertices))};
 
             VertexBufferLayout layout;
             layout.add(0, VertexBufferLayout::Float, 2);
 
             storage.screen_quad_vertex_array = std::make_unique<VertexArray>();
             storage.screen_quad_vertex_array->bind();
-            storage.screen_quad_vertex_array->add_vertex_buffer(screen_quad_vertex_buffer, layout);
+            storage.screen_quad_vertex_array->add_vertex_buffer(buffer, layout);
             VertexArray::unbind();
+        }
+
+        {
+            auto buffer {std::make_shared<VertexBuffer>(CUBEMAP_VERTICES, sizeof(CUBEMAP_VERTICES))};
+
+            VertexBufferLayout layout;
+            layout.add(0, VertexBufferLayout::Float, 3);
+
+            storage.skybox_vertex_array  = std::make_unique<VertexArray>();
+            storage.skybox_vertex_array ->bind();
+            storage.skybox_vertex_array ->add_vertex_buffer(buffer, layout);
+            VertexArray::unbind();
+        }
+
+        {
+            // Doesn't have uniform buffers for sure
+            storage.screen_quad_shader = std::make_unique<Shader>("data/shaders/screen_quad.vert", "data/shaders/screen_quad.frag");
         }
 
         {
@@ -119,6 +133,12 @@ namespace bb {
 
         {
             storage.text_shader = std::make_unique<Shader>("data/shaders/text.vert", "data/shaders/text.frag");
+        }
+
+        {
+            storage.skybox_shader = std::make_shared<Shader>("data/shaders/skybox.vert", "data/shaders/skybox.frag");
+
+            add_shader(storage.skybox_shader);
         }
 
         debug_initialize();
@@ -163,6 +183,10 @@ namespace bb {
         scene_list.light_space.lens_near = lens_near;
         scene_list.light_space.lens_far = lens_far;
         scene_list.light_space.position = position;
+    }
+
+    void Renderer::skybox(std::shared_ptr<TextureCubemap> texture) {
+           storage.skybox_texture = texture;
     }
 
     void Renderer::add_renderable(const Renderable& renderable) {
@@ -334,6 +358,10 @@ namespace bb {
         OpenGl::bind_texture_2d(storage.shadow_map_framebuffer->get_depth_attachment(), SHADOW_MAP_UNIT);
 
         draw_renderables();
+
+        if (storage.skybox_texture != nullptr) {
+            draw_skybox();
+        }
 
         // Blit the resulted scene texture to an intermediate texture, resolving anti-aliasing
         storage.scene_framebuffer->blit(
@@ -538,6 +566,21 @@ namespace bb {
         }
 
         // Don't unbind for every renderable
+        VertexArray::unbind();
+    }
+
+    void Renderer::draw_skybox() {
+        const glm::mat4& projection {camera.projection_matrix};
+        const glm::mat4 view {glm::mat4(glm::mat3(camera.view_matrix))};
+
+        storage.skybox_shader->bind();
+        storage.skybox_shader->upload_uniform_mat4("u_projection_view_matrix"_H, projection * view);
+
+        storage.skybox_vertex_array->bind();
+        storage.skybox_texture->bind(0);
+
+        OpenGl::draw_arrays(36);
+
         VertexArray::unbind();
     }
 

@@ -38,17 +38,17 @@ inline const int ORB_POINTS[static_cast<int>(OrbType::LAST) + 1] {
 class Orb {
 public:
     Orb() = default;
-    Orb(unsigned int index, float x, float y, glm::vec3 velocity, OrbType type)
-        : index(index), position(glm::vec3(x, GROUND_LEVEL + radius, y)), velocity(velocity), type(type) {}
+    Orb(unsigned int index, float x, float z, glm::vec3 velocity, OrbType type)
+        : index(index), position(glm::vec3(x, GROUND_LEVEL + radius, z)), velocity(velocity), type(type) {}
 
     unsigned int get_index() const { return index; }
     OrbType get_type() const { return type; }
     int get_points() const { return ORB_POINTS[static_cast<int>(type)]; }
 
+    float radius {0.2f};
+
     glm::vec3 position {};
     glm::vec3 velocity {};
-
-    float radius {0.2f};
 private:
     unsigned int index {};
 

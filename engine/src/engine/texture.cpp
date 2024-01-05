@@ -186,7 +186,7 @@ namespace bb {
         configure_filter_and_wrap_3d();
 
         int width, height;
-        SDL_Surface* data[6];
+        SDL_Surface* data[6] {};
 
         for (std::size_t i {0}; i < 6; i++) {
             SDL_Surface* surface {IMG_Load(file_paths[i])};
