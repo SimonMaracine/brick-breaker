@@ -12,5 +12,6 @@ namespace bb {
         void* user_data {nullptr};
         int min_width {640};
         int min_height {360};
+        int samples {1};
     };
 }

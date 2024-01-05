@@ -36,10 +36,27 @@ namespace bb {
     static constexpr std::size_t SHADER_POINT_LIGHTS {4};
     static constexpr int SHADOW_MAP_UNIT {1};
 
-    Renderer::Renderer(int width, int height) {
+    Renderer::Renderer(int width, int height, int samples) {
         OpenGl::initialize_default();
         OpenGl::enable_depth_test();
         OpenGl::clear_color(0.0f, 0.0f, 0.0f);
+
+        {
+            FramebufferSpecification specification;
+            specification.width = width;
+            specification.height = height;
+            specification.color_attachments = {
+                Attachment(AttachmentFormat::Rgba8, AttachmentType::Renderbuffer)
+            };
+            specification.depth_attachment = Attachment(
+                AttachmentFormat::Depth32, AttachmentType::Renderbuffer
+            );
+            specification.samples = samples;
+
+            storage.scene_framebuffer = std::make_shared<Framebuffer>(specification);
+
+            add_framebuffer(storage.scene_framebuffer);
+        }
 
         {
             FramebufferSpecification specification;
@@ -52,9 +69,9 @@ namespace bb {
                 AttachmentFormat::Depth32, AttachmentType::Renderbuffer
             );
 
-            storage.scene_framebuffer = std::make_shared<Framebuffer>(specification);
+            storage.intermediate_framebuffer = std::make_shared<Framebuffer>(specification);
 
-            add_framebuffer(storage.scene_framebuffer);
+            add_framebuffer(storage.intermediate_framebuffer);
         }
 
         {
@@ -317,7 +334,20 @@ namespace bb {
         OpenGl::bind_texture_2d(storage.shadow_map_framebuffer->get_depth_attachment(), SHADOW_MAP_UNIT);
 
         draw_renderables();
-        draw_renderables_outlined();
+
+        // Blit the resulted scene texture to an intermediate texture, resolving anti-aliasing
+        storage.scene_framebuffer->blit(
+            storage.intermediate_framebuffer.get(),
+            storage.scene_framebuffer->get_specification().width,
+            storage.scene_framebuffer->get_specification().height
+        );
+
+        storage.intermediate_framebuffer->bind();
+
+        OpenGl::viewport(
+            storage.intermediate_framebuffer->get_specification().width,
+            storage.intermediate_framebuffer->get_specification().height
+        );
 
         // Do post processing and render the final 3D image to the screen
         end_rendering();
@@ -476,14 +506,6 @@ namespace bb {
         material->get_shader()->upload_uniform_mat4("u_model_matrix"_H, matrix);
 
         OpenGl::draw_elements(vertex_array->get_index_buffer()->get_index_count());
-    }
-
-    void Renderer::draw_renderables_outlined() {
-
-    }
-
-    void Renderer::draw_renderable_outlined(const Renderable& renderable) {
-
     }
 
     void Renderer::draw_renderables_to_depth_buffer() {

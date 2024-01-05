@@ -23,7 +23,7 @@ namespace bb {
 
     class Renderer {
     public:
-        Renderer(int width, int height);
+        Renderer(int width, int height, int samples);
         ~Renderer();
 
         Renderer(const Renderer&) = delete;
@@ -75,9 +75,6 @@ namespace bb {
         void draw_renderables();
         void draw_renderable(const Renderable& renderable);
 
-        void draw_renderables_outlined();
-        void draw_renderable_outlined(const Renderable& renderable);
-
         void draw_renderables_to_depth_buffer();
 
         void draw_strings();
@@ -89,6 +86,7 @@ namespace bb {
 
         struct {
             std::shared_ptr<Framebuffer> scene_framebuffer;
+            std::shared_ptr<Framebuffer> intermediate_framebuffer;
             std::shared_ptr<Framebuffer> shadow_map_framebuffer;
 
             std::unique_ptr<Shader> screen_quad_shader;
