@@ -29,6 +29,7 @@ scenes (through some sort of GUI, by altering them in real time), it is enough t
 - Shadow rendering
 - Debug lines rendering
 - Crisp 2D text rendering with SDFs (TrueType fonts)
+- Skybox rendering
 - Anti-aliasing (MSAA)
 - Textures
 - Cameras
@@ -121,3 +122,9 @@ frame the whole scene must be presented to be rendered. This makes the API flexi
 to retained mode rendering, where the scene is presented once at the start and then rendered every frame. Any change
 to the scene then must be made through state changing functions. Retained mode rendering is usually more efficient when
 implemented correctly.
+
+## Resource management
+
+I used dynamic memory and smart pointers to manage resources of any kind. RAII makes this very easy. Sometimes resources
+are needed in multiple places. A reference-counting system solves this problems really nicely. When a resource is no
+longer used by anyone (has no owners), it is automatically freed.
