@@ -11,9 +11,10 @@ To make a game with this engine, you create an executable that links to the libr
 ## Features
 
 This engine, at its current state, is very limited and it doesn't provide a lot of features. It can't even compare to
-top engines like `Godot`, `Unity` or `Unreal Engine`. And even though it doesn't have a way to dynamically develop
-scenes (through some sort of GUI, by altering them in real time), it is enough to be a small and feature-lacking
-**core** of a game engine. That is, additional features can be easily added to it, or GUI implemented on top of it.
+top engines like `Godot`, `Unity` or `Unreal Engine`. But even though it doesn't have a way to dynamically develop
+scenes (through some sort of GUI, by altering them in real time), it is enough to be considered a small and
+feature-lacking **core** of a game engine. That is, additional features can be easily added to it, or GUI implemented
+on top of it.
 
 ### Present features
 
@@ -41,6 +42,9 @@ scenes (through some sort of GUI, by altering them in real time), it is enough t
 There is no point in writing a list of missing features, because there are arguably an infinite amount of them. Anyone
 can come and say that it's lacking feature X. But it is not difficult at all to support more file formats, more features
 and more things. I only wrote the features I needed (or wanted) for the game.
+
+At the very end I wished that I implemented support for the `Dear ImGui` library (for debug GUI), even though I didn't
+feel the need for it while developing the engine.
 
 ## Minimal Example
 
@@ -99,11 +103,11 @@ int main() {
 The engine uses modern `OpenGL` (version 4.3) to achieve its rendering of 2D and 3D graphics. This means that
 programmable shaders are possible and actually needed to render anything.
 
-I implemented the `Phong lighting model`, the most basic one. The Phong model uses forward rendering which means that
-lighting is rendered alongside the objects. This is opposed to the common deferred rendering, where lighting is applied
-later on and only where really visible. I made it support one directional light and (up to) four point lights. If
-someone wants more lights, they can implement deferred rendering or forward+ rendering and then modify the engine
-slightly.
+I implemented the `Phong lighting model`, the most basic one. The Phong model uses forward rendering, which means that
+lighting is rendered when objects are rendered. This is opposed to the common deferred rendering, where lighting
+is applied later on and only where really visible. I made the engine support one directional light and (up to) four
+point lights. If someone wants more lights, they might want to implement deferred rendering or forward+ rendering and
+then modify the engine slightly instead of allowing more lights in the forward rendering scheme.
 
 I also implemented `shadow mapping` with PCF (Percentage Closer Filtering), though the built in PCF offered by OpenGL
 might be more desirable. I used a shadow map size of 2048, but a higher one of like 4096 yields much higher quality
@@ -137,7 +141,7 @@ to retained mode rendering, where the scene is presented once at the start and t
 to the scene then must be made through state changing functions. Retained mode rendering is usually more efficient when
 implemented correctly.
 
-I needed to use `RenderDoc` a few times do better understand what was happening with the graphics code.
+I needed to use `RenderDoc` a few times to better see what was happening with the graphics pipeline.
 
 The entire rendering of a single frame looks like this:
 
