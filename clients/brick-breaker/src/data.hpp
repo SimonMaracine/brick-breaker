@@ -16,4 +16,5 @@ struct Data {
     std::shared_ptr<bb::SoundData> sound_lost;
     std::shared_ptr<bb::SoundData> sound_won;
     std::shared_ptr<bb::SoundData> sound_switch;
+    bool mouse_input {false};
 };

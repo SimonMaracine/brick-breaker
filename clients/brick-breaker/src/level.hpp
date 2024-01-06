@@ -63,8 +63,6 @@ struct LevelScene : public bb::Scene {
     void draw_bounding_box(const Box& box);
     void draw_fps();
 
-    bool mouse_input {false};
-
     bb::Camera cam;
     MyCameraController cam_controller;
     bb::Camera2D cam_2d;

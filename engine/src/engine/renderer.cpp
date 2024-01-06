@@ -482,7 +482,7 @@ namespace bb {
         OpenGl::clear(OpenGl::Buffers::CD);
 
         // screen_quad(post_processing_context.last_texture);  // FIXME
-        screen_quad(storage.scene_framebuffer->get_color_attachment(0));
+        screen_quad(storage.intermediate_framebuffer->get_color_attachment(0));
 
         OpenGl::enable_depth_test();
 

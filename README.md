@@ -18,7 +18,7 @@ I had lots of fun making this game.
 
 The project is structured in modules (or subprojects), where each module is either a C++ library or executable.
 
-This is how the project looks like as of commit baf4c52:
+This is how the project looks like as of commit `baf4c52`:
 
 ```txt
 brick-breaker/

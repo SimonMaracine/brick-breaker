@@ -74,8 +74,6 @@ void LevelScene::on_enter() {
     connect_event<OrbPaddleCollisionEvent, &LevelScene::on_orb_paddle_collision>(this);
     connect_event<BallBrickCollisionEvent, &LevelScene::on_ball_brick_collision>(this);
 
-    bb::OpenGl::clear_color(0.1f, 0.1f, 0.15f);
-
     load_shaders();
     load_skybox();
     load_platform();
@@ -85,18 +83,17 @@ void LevelScene::on_enter() {
     load_lamp();
     load_orb();
 
-    skybox(cache_texture_cubemap["skybox"_H]);
+    auto& data {user_data<Data>()};
 
-    mouse_input = false;
-    capture_mouse(mouse_input);
+    bb::OpenGl::clear_color(0.1f, 0.1f, 0.15f);
+    skybox(cache_texture_cubemap["skybox"_H]);
+    capture_mouse(data.mouse_input);
 
     id_gen = IdGenerator();
     paddle = Paddle();
 
     balls.clear();
     create_ball();
-
-    auto& data {user_data<Data>()};
 
     bricks.clear();
     auto level {load_level(data.selected_level, id_gen)};
@@ -366,7 +363,9 @@ void LevelScene::on_key_released(const bb::KeyReleasedEvent& event) {
 }
 
 void LevelScene::on_mouse_moved(const bb::MouseMovedEvent& event) {
-    if (!mouse_input) {
+    auto& data {user_data<Data>()};
+
+    if (!data.mouse_input) {
         return;
     }
 
@@ -374,15 +373,17 @@ void LevelScene::on_mouse_moved(const bb::MouseMovedEvent& event) {
 }
 
 void LevelScene::on_mouse_button_released(const bb::MouseButtonReleasedEvent& event) {
-    if (mouse_input) {
+    auto& data {user_data<Data>()};
+
+    if (data.mouse_input) {
         if (event.button == bb::MB_LEFT_ENUM) {
             shoot_balls();
         }
     }
 
     if (event.button == bb::MB_MIDDLE_ENUM) {
-        mouse_input = !mouse_input;
-        capture_mouse(mouse_input);
+        data.mouse_input = !data.mouse_input;
+        capture_mouse(data.mouse_input);
     }
 }
 

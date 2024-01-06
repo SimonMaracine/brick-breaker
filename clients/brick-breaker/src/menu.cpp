@@ -27,6 +27,7 @@ void Menu::on_enter() {
     connect_event<bb::KeyReleasedEvent, &Menu::on_key_released>(this);
 
     bb::OpenGl::clear_color(0.1f, 0.1f, 0.1f);
+    capture_mouse(false);
 }
 
 void Menu::on_exit() {
