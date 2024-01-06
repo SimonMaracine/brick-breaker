@@ -96,35 +96,63 @@ int main() {
 
 ## Graphics
 
-The engine uses modern OpenGL (version 4.3) to achieve its rendering of 2D and 3D graphics. This means that programmable
-shaders are possible and actually needed to render anything.
+The engine uses modern `OpenGL` (version 4.3) to achieve its rendering of 2D and 3D graphics. This means that
+programmable shaders are possible and actually needed to render anything.
 
-I implemented the Phong lighting model, the most basic one. The Phong model uses forward rendering which means that
+I implemented the `Phong lighting model`, the most basic one. The Phong model uses forward rendering which means that
 lighting is rendered alongside the objects. This is opposed to the common deferred rendering, where lighting is applied
 later on and only were really visible. I made it support one directional light and (up to) four point lights. If someone
 wants more lights, they can implement deferred rendering or forward+ rendering and then modify the engine slightly.
 
-I also implemented shadow mapping with PCF (Percentage Closer Filtering), though the built in PCF offered by OpenGL
-might be more desirable.
+I also implemented `shadow mapping` with PCF (Percentage Closer Filtering), though the built in PCF offered by OpenGL
+might be more desirable. I used a shadow map size of 2048, but a higher one of like 4096 yields much better quality
+shadows, but at a bigger performance cost.
 
-Text rendering is supported, with more than ASCII characters (but not Asian hieroglyphs or backwards writing). I make
+![shadow map](/gallery/renderdoc/shadow_map.png)
+
+`Text rendering` is supported, with more than ASCII characters (but not Asian hieroglyphs or backwards writing). I make
 use of signed distance fields to render high quality characters at any scale.
 
-The material system is, of course, tightly coupled to shaders. It offers a nice way to define how objects should be
+![font map](/gallery/renderdoc/font_map.png)
+
+The `material system` is, of course, tightly coupled to `shaders`. It offers a nice way to define how objects should be
 rendered and a way to automatically send uniform variables to the shader program at the right time.
+
+![vertex input of platform](/gallery/renderdoc/vertex_input.png)
+![vertex shader of platform](/gallery/renderdoc/vertex_shader.png)
+![fragment shader of platform](/gallery/renderdoc/fragment_shader.png)
 
 A lot of math is involved in implementing these graphics. Namely, vectors and matrices are used everywhere to represent
 positions in space, colors and transformations. I didn't implement these mathematical concepts and algorithms myself
 from scratch and instead I used a very popular math library designed just for these.
 
-I made the rendering API immediate mode, because that is easier to use, in my opinion. Immediate mode means that every
+I made the rendering API `immediate mode`, because that is easier to use, in my opinion. Immediate mode means that every
 frame the whole scene must be presented to be rendered. This makes the API flexible and more dynamic. This is opposed
 to retained mode rendering, where the scene is presented once at the start and then rendered every frame. Any change
 to the scene then must be made through state changing functions. Retained mode rendering is usually more efficient when
 implemented correctly.
 
-## Resource management
+I needed to use `RenderDoc` a few times do better understand what was happening with the graphics code.
 
-I used dynamic memory and smart pointers to manage resources of any kind. RAII makes this very easy. Sometimes resources
-are needed in multiple places. A reference-counting system solves this problems really nicely. When a resource is no
-longer used by anyone (has no owners), it is automatically freed.
+The entire rendering of a single frame:
+
+![shadow map](/gallery/renderdoc/1.png)
+![platform rendered](/gallery/renderdoc/2.png)
+![paddle rendered](/gallery/renderdoc/3.png)
+![ball rendered](/gallery/renderdoc/4.png)
+![first brick rendered](/gallery/renderdoc/5.png)
+![more bricks rendered](/gallery/renderdoc/6.png)
+![even more bricks rendered](/gallery/renderdoc/7.png)
+![font map](/gallery/renderdoc/8.png)
+![final image](/gallery/renderdoc/9.png)
+
+## Resource Management
+
+To manage resources of any kind, I used dynamic memory and smart pointers. RAII makes this very easy. Sometimes
+resources are needed in multiple places. A reference-counting system solves this problems really nicely. When a resource
+is no longer used by anyone (has no owners), it is automatically freed. It is important to know when to use unique and
+weak pointers instead of shared pointers.
+
+I also used a helper library, namely `resmanager` to more easily handle resources through in-code **string** identifiers
+that are actually evaluated at compile time to generate unique **integer** identifiers for the resources. This makes
+the management both easier and faster.
