@@ -27,11 +27,11 @@ MyCameraController::MyCameraController(
     update_camera(1.0f);
 }
 
-void MyCameraController::update_controls(float dt) {
+void MyCameraController::update_controls(float) {
 
 }
 
-void MyCameraController::update_camera(float dt) {
+void MyCameraController::update_camera(float) {
     // Limit distance_to_point
     distance_to_point = std::max(distance_to_point, MIN_DISTANCE_TO_POINT);
     distance_to_point = std::min(distance_to_point, MAX_DISTANCE_TO_POINT);

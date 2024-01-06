@@ -39,7 +39,7 @@ class Orb {
 public:
     Orb() = default;
     Orb(unsigned int index, float x, float z, glm::vec3 velocity, OrbType type)
-        : index(index), position(glm::vec3(x, GROUND_LEVEL + radius + 0.2f, z)), velocity(velocity), type(type) {}
+        : position(glm::vec3(x, GROUND_LEVEL + radius + 0.2f, z)), velocity(velocity), index(index), type(type) {}
 
     unsigned int get_index() const { return index; }
     OrbType get_type() const { return type; }

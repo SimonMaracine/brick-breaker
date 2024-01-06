@@ -109,17 +109,6 @@ target_link_libraries(bb-engine PUBLIC
 
 target_include_directories(bb-engine PUBLIC "src")
 
-if(UNIX)
-    target_compile_options(bb-engine PRIVATE "-Wall" "-Wextra" "-Wpedantic")
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    target_compile_options(bb-engine PRIVATE "/W3")
-else()
-    message(WARNING "Compiler is not MSVC or platform is not supported, warnings are not enabled")
-endif()
-
-target_compile_features(bb-engine PRIVATE cxx_std_17)
-set_target_properties(bb-engine PROPERTIES CXX_EXTENSIONS OFF)
-
 target_compile_definitions(bb-engine PRIVATE "UTF_CPP_CPLUSPLUS=201703")
 
 if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
@@ -138,3 +127,5 @@ if(BB_CHRONO_TIMER)
 
     message(STATUS "BB: Using chrono timer instead of SDL2 one")
 endif()
+
+set_warnings_and_standard(bb-engine)

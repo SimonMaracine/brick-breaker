@@ -14,7 +14,7 @@ technologies. The third party libraries are mostly unrelated to actual graphics 
 
 ## Structure
 
-The project is strucured in modules (or subprojects), where each module is either a C++ library or executable.
+The project is structured in modules (or subprojects), where each module is either a C++ library or executable.
 
     As of commit 8734f67:
 
@@ -67,9 +67,24 @@ Assets for the applications are located in the `data` directory.
 
 ## Building
 
-The engine is made to work on `Linux` and `Windows`. I tested the game on `Fedora Linux 39 (Workstation Edition)` and on
-`Microsoft Windows 10`, on an above average CPU and GPU model. The project requires `C++17` and `GCC` or `MSVC`
-compilers (`GCC 13.2` or `MSVC 19.36`).
+The engine is made to work on `Linux` and `Windows`. I tested the game on `Fedora Linux 39 (Workstation Edition)`
+(`GNOME` environment, `X11` system) and on `Microsoft Windows 10`, on an `AMD Ryzen™ 5 1600 × 12` CPU and
+`NVIDIA GeForce GTX 1050 Ti` GPU.
+
+The project requires `C++17` and `GCC` or `MSVC` compilers. I tested it on `GCC 13.2` and `MSVC 19.36`.
+
+To download the project, run:
+
+```sh
+git clone https://github.com/SimonMaracine/brick-breaker/
+cd brick-breaker
+git submodule update --init
+```
 
 The whole project is setup by running `setup.sh` or `setup.bat` from scripts and it can be built by invoking `build.sh`
 or by building from Visual Studio.
+
+Note that for building the whole thing, you need to have installed the required packages (dependent of Linux
+distribution) or to have installed the required development toolkit(s) on Windows.
+
+Build in release mode to have a good play experience.

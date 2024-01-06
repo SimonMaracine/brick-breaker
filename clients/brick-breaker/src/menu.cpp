@@ -109,7 +109,7 @@ void Menu::on_update() {
 }
 
 void Menu::on_window_resized(const bb::WindowResizedEvent& event) {
-    cam_2d.set_projection_matrix(0.0f, static_cast<float>(get_width()), 0.0f, static_cast<float>(get_height()));
+    cam_2d.set_projection_matrix(0.0f, static_cast<float>(event.width), 0.0f, static_cast<float>(event.width));
 }
 
 void Menu::on_key_released(const bb::KeyReleasedEvent& event) {

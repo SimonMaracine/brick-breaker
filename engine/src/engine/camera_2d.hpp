@@ -9,6 +9,6 @@ namespace bb {
             projection_matrix = glm::ortho(left, right, bottom, top);
         }
 
-        glm::mat4 projection_matrix {glm::mat4(1.0f)};
+        glm::mat4 projection_matrix {1.0f};
     };
 }

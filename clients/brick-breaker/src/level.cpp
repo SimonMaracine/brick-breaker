@@ -910,7 +910,7 @@ void LevelScene::update_ball(Ball& ball) {
     const auto perpendicular_velocity {glm::rotate(glm::normalize(ball.velocity), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f))};
     const float current_rotation {rotate_ball(ball)};
 
-    glm::mat4 trans {glm::mat4(1.0f)};
+    glm::mat4 trans {1.0f};
     trans = glm::translate(trans, ball.get_position());
     trans *= glm::toMat4(ball.rotation);
     trans = glm::rotate(trans, current_rotation, perpendicular_velocity);

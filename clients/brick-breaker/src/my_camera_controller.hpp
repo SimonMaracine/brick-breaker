@@ -24,8 +24,8 @@ struct MyCameraController : public bb::CameraController {
         float pitch
     );
 
-    virtual void update_controls(float dt) override;
-    virtual void update_camera(float dt) override;
+    virtual void update_controls(float) override;
+    virtual void update_camera(float) override;
     virtual glm::vec3 get_position() const override;
     virtual glm::vec3 get_rotation() const override;
 
