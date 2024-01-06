@@ -36,7 +36,7 @@ scenes (through some sort of GUI, by altering them in real time), it is enough t
 - Scene system
 - Error handling through exceptions
 
-### Lacking features
+### Missing features
 
 There is no point in writing a list of missing features, because there are arguably an infinite amount of them. Anyone
 can come and say that it's lacking feature X. But it is not difficult at all to support more file formats, more features
@@ -101,17 +101,18 @@ programmable shaders are possible and actually needed to render anything.
 
 I implemented the `Phong lighting model`, the most basic one. The Phong model uses forward rendering which means that
 lighting is rendered alongside the objects. This is opposed to the common deferred rendering, where lighting is applied
-later on and only were really visible. I made it support one directional light and (up to) four point lights. If someone
-wants more lights, they can implement deferred rendering or forward+ rendering and then modify the engine slightly.
+later on and only where really visible. I made it support one directional light and (up to) four point lights. If
+someone wants more lights, they can implement deferred rendering or forward+ rendering and then modify the engine
+slightly.
 
 I also implemented `shadow mapping` with PCF (Percentage Closer Filtering), though the built in PCF offered by OpenGL
-might be more desirable. I used a shadow map size of 2048, but a higher one of like 4096 yields much better quality
+might be more desirable. I used a shadow map size of 2048, but a higher one of like 4096 yields much higher quality
 shadows, but at a bigger performance cost.
 
 ![shadow map](/gallery/renderdoc/shadow_map.png)
 
 `Text rendering` is supported, with more than ASCII characters (but not Asian hieroglyphs or backwards writing). I make
-use of signed distance fields to render high quality characters at any scale.
+use of a technique called signed distance fields to render high quality characters at any scale.
 
 ![font map](/gallery/renderdoc/font_map.png)
 
@@ -128,7 +129,7 @@ from scratch and instead I used a very popular math library called `GLM` that wa
 
 `Cameras` can be easily manipulated. I created the concept of a camera in 3D space as a thing composed of a `projection`
 and a `view` matrix, just data. A camera controller is a separate entity that can use the camera and do certain
-additional things. 2D cameras are usually just an orthogonal projection matrix.
+additional things. 2D cameras are usually just an orthographic projection matrix.
 
 I made the rendering API `immediate mode`, because that is easier to use, in my opinion. Immediate mode means that every
 frame the whole scene must be presented to be rendered. This makes the API flexible and more dynamic. This is opposed
@@ -138,7 +139,7 @@ implemented correctly.
 
 I needed to use `RenderDoc` a few times do better understand what was happening with the graphics code.
 
-The entire rendering of a single frame:
+The entire rendering of a single frame looks like this:
 
 ![shadow map](/gallery/renderdoc/1.png)
 ![platform rendered](/gallery/renderdoc/2.png)
@@ -152,11 +153,11 @@ The entire rendering of a single frame:
 
 ## Resource Management
 
-To manage resources of any kind, I used dynamic memory and smart pointers. RAII makes this very easy. Sometimes
-resources are needed in multiple places. A reference-counting system solves this problems really nicely. When a resource
-is no longer used by anyone (has no owners), it is automatically freed. It is important to know when to use unique and
-weak pointers instead of shared pointers.
+To manage resources of any kind, I used dynamic memory and smart pointers. `RAII` makes this very easy. Sometimes
+resources are needed in multiple places and a reference-counting system solves this problem really nicely. When a
+resource is no longer used by anyone (has no owners), it is automatically freed. But it is important to understand when
+to use unique and weak pointers instead of shared pointers.
 
-I also used a helper library, namely `resmanager` to more easily handle resources through in-code **string** identifiers
+I also used a helper library named `resmanager` to more easily handle resources through in-code **string** identifiers
 that are actually evaluated at compile time to generate unique **integer** identifiers for the resources. This makes
-the management both easier and faster.
+the management both easier and more performant.

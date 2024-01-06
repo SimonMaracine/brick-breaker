@@ -21,7 +21,6 @@ Catch the orbs to make more points or finish the level faster!
 - WASD, QE - move the camera
 - R - restart the game
 - Escape - exit to menu
-
 - Middle click - enable/disable mouse input
 - Mouse - move the paddle
 - Left click - launch the balls
@@ -41,7 +40,7 @@ made the one named Goofy.
 
 Of course, math was needed to implement many, many things. I used the features offered by the engine together with many
 functions from `GLM` to implement translating, rotating and scaling objects with various velocities, handling collision
-detection and resolution, ricocheting the balls off the paddle at various angles and rotate the ball correctly as it's
+detection and resolution, ricocheting the balls off the paddle at various angles and rotating the ball correctly as it's
 moving.
 
 ## Assets
