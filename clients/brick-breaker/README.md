@@ -34,6 +34,9 @@ Catch the orbs to make more points or finish the level faster!
 The levels are loaded dynamically from the disk. Each level is described by a JSON file. If a level file is corrupted or
 invalid, the game simply prints a message and doesn't create any brick.
 
+This way levels are so easy to create, that even my little sister, who is just thirteen years old could make one. She
+made the one named Goofy.
+
 ## Math
 
 Of course, math was needed to implement many, many things. I used the features offered by the engine together with many

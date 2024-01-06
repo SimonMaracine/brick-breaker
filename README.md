@@ -16,20 +16,29 @@ technologies. The third party libraries are mostly unrelated to actual graphics 
 
 The project is structured in modules (or subprojects), where each module is either a C++ library or executable.
 
-    As of commit 8734f67:
+    As of commit baf4c52:
 
     brick-breaker/
     ├── clients
     │   ├── brick-breaker
     │   │   ├── CMakeLists.txt
     │   │   ├── extern
+    │   │   ├── README.md
     │   │   └── src
     │   │       ├── source1
     │   │       ├── source2
     │   │       └── source3
     │   ├── CMakeLists.txt
+    │   ├── minimal
+    │   │   ├── CMakeLists.txt
+    │   │   ├── README.md
+    │   │   └── src
+    │   │       ├── source1
+    │   │       ├── source2
+    │   │       └── source3
     │   └── teapot
     │       ├── CMakeLists.txt
+    │       ├── README.md
     │       └── src
     │           ├── source1
     │           ├── source2
@@ -45,21 +54,28 @@ The project is structured in modules (or subprojects), where each module is eith
     ├── engine
     │   ├── CMakeLists.txt
     │   ├── extern
+    │   ├── README.md
     │   └── src
-    │       ├── source1
+    │       ├── source1
     │       ├── source2
     │       └── source3
+    ├── gallery
+    │   ├── image1
+    │   └── image2
+    ├── README.md
     └── scripts
         ├── scripts1
         └── scripts2
 
-    22 directories, 147 files
+    27 directories, 175 files
 
 With the engine as a platform for building games with C++, the clients directory could contain many more subprojects,
 as it's quite easy to use the engine library, but I didn't want to waste too much time on other applications, even
 though they could showcase the engine's features much better.
 
 I first wrote a test application named `teapot`, that doesn't contain many objects or much lighting.
+
+There is also a minimal application.
 
 Then there's the actual brick breaker game in the directory `brick-breaker`.
 
@@ -69,7 +85,8 @@ Assets for the applications are located in the `data` directory.
 
 The engine is made to work on `Linux` and `Windows`. I tested the game on `Fedora Linux 39 (Workstation Edition)`
 (`GNOME` environment, `X11` system) and on `Microsoft Windows 10`, on an `AMD Ryzen™ 5 1600 × 12` CPU and
-`NVIDIA GeForce GTX 1050 Ti` GPU.
+`NVIDIA GeForce GTX 1050 Ti` GPU. And I also tested it on an old `Xubuntu Linux` laptop with an `Intel® Core™ i5-4200U`
+CPU and an integrated `Intel® HD Graphics 4400` GPU.
 
 The project requires `C++17` and `GCC` or `MSVC` compilers. I tested it on `GCC 13.2` and `MSVC 19.36`.
 

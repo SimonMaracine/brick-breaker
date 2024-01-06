@@ -124,7 +124,11 @@ rendered and a way to automatically send uniform variables to the shader program
 
 A lot of math is involved in implementing these graphics. Namely, vectors and matrices are used everywhere to represent
 positions in space, colors and transformations. I didn't implement these mathematical concepts and algorithms myself
-from scratch and instead I used a very popular math library designed just for these.
+from scratch and instead I used a very popular math library called `GLM` that was designed just for these.
+
+`Cameras` can be easily manipulated. I created the concept of a camera in 3D space as a thing composed of a `projection`
+and a `view` matrix, just data. A camera controller is a separate entity that can use the camera and do certain
+additional things. 2D cameras are usually just an orthogonal projection matrix.
 
 I made the rendering API `immediate mode`, because that is easier to use, in my opinion. Immediate mode means that every
 frame the whole scene must be presented to be rendered. This makes the API flexible and more dynamic. This is opposed
