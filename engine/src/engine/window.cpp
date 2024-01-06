@@ -17,7 +17,7 @@ namespace bb {
     Window::Window(const WindowProperties& properties, Application* application)
         : width(properties.width), height(properties.height), application(application) {
         if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
-            log_message("Could not initialize SDL\n");
+            log_message("Could not initialize SDL: %s\n", SDL_GetError());
             throw InitializationError;
         }
 
@@ -43,7 +43,7 @@ namespace bb {
         );
 
         if (window == nullptr) {
-            log_message("Could not create window\n");
+            log_message("Could not create window: %s\n", SDL_GetError());
             throw InitializationError;
         }
 
