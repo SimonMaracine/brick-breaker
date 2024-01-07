@@ -92,7 +92,7 @@ Assets for the applications are located in the `data` directory.
 The engine is made to work on `Linux` and `Windows`. I tested the game on `Fedora Linux 39 (Workstation Edition)`
 (`GNOME` environment, `X11` system) and on `Microsoft Windows 10`, on an `AMD Ryzen™ 5 1600 × 12` CPU and
 `NVIDIA GeForce GTX 1050 Ti` GPU. And I also tested it on an old `Xubuntu Linux` laptop with an `Intel® Core™ i5-4200U`
-CPU and an integrated `Intel® HD Graphics 4400` GPU.
+CPU and an integrated `Intel® HD Graphics 4400` GPU, and the game was played on a few of my friends' Windows machines.
 
 The project requires `C++17` and `GCC` or `MSVC` compilers. I tested it on `GCC 13.2` and `MSVC 19.36`.
 
