@@ -113,23 +113,23 @@ I also implemented `shadow mapping` with PCF (Percentage Closer Filtering), thou
 might be more desirable. I used a shadow map size of 2048, but a higher one of like 4096 yields much higher quality
 shadows, but at a bigger performance cost.
 
-Shadow map
+Shadow map  
 ![shadow map](/gallery/renderdoc/shadow_map.png)
 
 `Text rendering` is supported, with more than ASCII characters (but not Asian hieroglyphs or backwards writing). I make
 use of a technique called signed distance fields to render high quality characters at any scale.
 
-Font map
+Font map  
 ![font map](/gallery/renderdoc/font_map.png)
 
 The `material system` is, of course, tightly coupled to `shaders`. It offers a nice way to define how objects should be
 rendered and a way to automatically send uniform variables to the shader program at the right time.
 
-Vertex input of platform
+Vertex input of platform  
 ![vertex input of platform](/gallery/renderdoc/vertex_input.png)
-Vertex shader of platform
+Vertex shader of platform  
 ![vertex shader of platform](/gallery/renderdoc/vertex_shader.png)
-Fragment shader of platform
+Fragment shader of platform  
 ![fragment shader of platform](/gallery/renderdoc/fragment_shader.png)
 
 A lot of math is involved in implementing these graphics. Namely, vectors and matrices are used everywhere to represent
@@ -150,23 +150,23 @@ I needed to use `RenderDoc` a few times to better see what was happening with th
 
 The entire rendering of a single frame looks like this:
 
-Shadow map
+Shadow map  
 ![shadow map](/gallery/renderdoc/1.png)
-Platform rendered
+Platform rendered  
 ![platform rendered](/gallery/renderdoc/2.png)
-Paddle rendered
+Paddle rendered  
 ![paddle rendered](/gallery/renderdoc/3.png)
-Ball rendered
+Ball rendered  
 ![ball rendered](/gallery/renderdoc/4.png)
-First brick rendered
+First brick rendered  
 ![first brick rendered](/gallery/renderdoc/5.png)
-More bricks rendered
+More bricks rendered  
 ![more bricks rendered](/gallery/renderdoc/6.png)
-Even more bricks rendered
+Even more bricks rendered  
 ![even more bricks rendered](/gallery/renderdoc/7.png)
-Font map
+Font map  
 ![font map](/gallery/renderdoc/8.png)
-Final image
+Final image  
 ![final image](/gallery/renderdoc/9.png)
 
 ## Resource Management
