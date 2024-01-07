@@ -19,7 +19,7 @@ inline const glm::vec3 ORB_COLORS[static_cast<int>(OrbType::LAST) + 1] {
     glm::vec3(0.1f, 0.9f, 0.1f),
     glm::vec3(0.1f, 0.1f, 0.9f),
     glm::vec3(0.9f, 0.9f, 0.1f),
-    glm::vec3(0.01f, 0.01f, 0.01f),
+    glm::vec3(0.09f, 0.09f, 0.09f),
     glm::vec3(1.0f, 0.1f, 0.1f),
     glm::vec3(0.8f, 0.75f, 0.75f),
     glm::vec3(1.0f, 0.0f, 1.0f)
@@ -29,7 +29,7 @@ inline const int ORB_POINTS[static_cast<int>(OrbType::LAST) + 1] {
     75,
     55,
     25,
-    250,
+    350,
     20,
     80,
     15

@@ -1,0 +1,181 @@
+{
+    "name": "Heart?",
+    "bricks": [
+        {
+            "position": [0, 0, -2],
+            "type": 0
+        },
+        {
+            "position": [0, 0, -3],
+            "type": 0
+        },
+        {
+            "position": [1, 0, -4],
+            "type": 0
+        },
+        {
+            "position": [2, 0, -3],
+            "type": 0
+        },
+        {
+            "position": [3, 0, -2],
+            "type": 0
+        },
+        {
+            "position": [3, 0, -1],
+            "type": 0
+        },
+        {
+            "position": [3, 0, 0],
+            "type": 0
+        },
+        {
+            "position": [3, 0, 1],
+            "type": 0
+        },
+        {
+            "position": [2, 0, 2],
+            "type": 0
+        },
+        {
+            "position": [1, 0, 3],
+            "type": 0
+        },
+        {
+            "position": [0, 0, 4],
+            "type": 0
+        },
+        {
+            "position": [-1, 0, -4],
+            "type": 0
+        },
+        {
+            "position": [-2, 0, -3],
+            "type": 0
+        },
+        {
+            "position": [-3, 0, -2],
+            "type": 0
+        },
+        {
+            "position": [-3, 0, -1],
+            "type": 0
+        },
+        {
+            "position": [-3, 0, 0],
+            "type": 0
+        },
+        {
+            "position": [-3, 0, 1],
+            "type": 0
+        },
+        {
+            "position": [-2, 0, 2],
+            "type": 0
+        },
+        {
+            "position": [-1, 0, 3],
+            "type": 0
+        },
+        {
+            "position": [0, 0, -1],
+            "type": 2
+        },
+        {
+            "position": [1, 0, -2],
+            "type": 2
+        },
+        {
+            "position": [1, 0, -3],
+            "type": 2
+        },
+        {
+            "position": [2, 0, -2],
+            "type": 2
+        },
+        {
+            "position": [2, 0, -1],
+            "type": 2
+        },
+        {
+            "position": [2, 0, 0],
+            "type": 2
+        },
+        {
+            "position": [2, 0, 1],
+            "type": 2
+        },
+        {
+            "position": [1, 0, 2],
+            "type": 2
+        },
+        {
+            "position": [0, 0, 3],
+            "type": 2
+        },
+        {
+            "position": [-1, 0, -2],
+            "type": 2
+        },
+        {
+            "position": [-1, 0, -3],
+            "type": 2
+        },
+        {
+            "position": [-2, 0, -2],
+            "type": 2
+        },
+        {
+            "position": [-2, 0, -1],
+            "type": 2
+        },
+        {
+            "position": [-2, 0, 0],
+            "type": 2
+        },
+        {
+            "position": [-2, 0, 1],
+            "type": 2
+        },
+        {
+            "position": [-1, 0, 2],
+            "type": 2
+        },
+        {
+            "position": [0, 0, 0],
+            "type": 1
+        },
+        {
+            "position": [1, 0, -1],
+            "type": 1
+        },
+        {
+            "position": [1, 0, 0],
+            "type": 1
+        },
+        {
+            "position": [1, 0, 1],
+            "type": 1
+        },
+        {
+            "position": [-1, 0, -1],
+            "type": 1
+        },
+        {
+            "position": [-1, 0, 0],
+            "type": 1
+        },
+        {
+            "position": [-1, 0, 1],
+            "type": 1
+        },
+        {
+            "position": [0, 0, 1],
+            "type": 3
+        },
+        {
+            "position": [0, 0, 2],
+            "type": 3
+        }
+    ]
+}

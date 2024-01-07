@@ -118,6 +118,14 @@ void LevelScene::on_exit() {
 }
 
 void LevelScene::on_update() {
+    if (arrows.left) {
+        paddle.velocity_x = -PADDLE_VELOCITY;
+    } else if (arrows.right) {
+        paddle.velocity_x = PADDLE_VELOCITY;
+    } else {
+        paddle.velocity_x = 0.0f;
+    }
+
     cam_controller.update_controls(get_delta());
     cam_controller.update_camera(get_delta());
 
@@ -332,10 +340,10 @@ void LevelScene::on_key_pressed(const bb::KeyPressedEvent& event) {
     if (!event.repeat) {
         switch (event.key) {
             case bb::KeyCode::K_LEFT:
-                paddle.velocity_x = -PADDLE_VELOCITY;
+                arrows.left = true;
                 break;
             case bb::KeyCode::K_RIGHT:
-                paddle.velocity_x = PADDLE_VELOCITY;
+                arrows.right = true;
                 break;
             default:
                 break;
@@ -346,8 +354,10 @@ void LevelScene::on_key_pressed(const bb::KeyPressedEvent& event) {
 void LevelScene::on_key_released(const bb::KeyReleasedEvent& event) {
     switch (event.key) {
         case bb::KeyCode::K_LEFT:
+            arrows.left = false;
+            break;
         case bb::KeyCode::K_RIGHT:
-            paddle.velocity_x = 0.0f;
+            arrows.right = false;
             break;
         case bb::KeyCode::K_SPACE:
             shoot_balls();

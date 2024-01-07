@@ -9,7 +9,7 @@ float calculate_shadow(
 
     const float current_depth = projection_coordinates.z;
 
-    const float bias = max(0.01 * (1.0 - dot(normal, light_direction)), 0.005);
+    const float bias = max(0.001 * (1.0 - dot(normal, light_direction)), 0.003);
 
     float shadow = 0.0;
     const vec2 texel_size = 1.0 / textureSize(shadow_map, 0);

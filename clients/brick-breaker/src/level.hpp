@@ -88,6 +88,11 @@ struct LevelScene : public bb::Scene {
         Won
     } game_over {};
 
+    struct {
+        bool left {false};
+        bool right {false};
+    } arrows;
+
     // Caches to easily store these resources
     resmanager::Cache<bb::VertexArray> cache_vertex_array;
     resmanager::Cache<bb::MaterialInstance> cache_material_instance;
