@@ -24,7 +24,10 @@ namespace bb {
         window_properties.min_height = properties.min_height;
 
         window = std::make_unique<Window>(window_properties, this);
-        renderer = std::make_unique<Renderer>(properties.width, properties.height, properties.samples);
+
+        if (!properties.disable_renderer) {
+            renderer = std::make_unique<Renderer>(properties.width, properties.height, properties.samples);
+        }
 
         AudioManager::initialize();
 
@@ -55,7 +58,10 @@ namespace bb {
         setup_scenes(scene_name);
 
         current_scene->on_enter();
-        renderer->prerender_setup();
+
+        if (renderer != nullptr) {
+            renderer->prerender_setup();
+        }
 
         while (running) {
             dt = calculate_delta();
@@ -65,14 +71,19 @@ namespace bb {
             current_scene->on_update();
             events.update();
 
-            renderer->render();
+            if (renderer != nullptr) {
+                renderer->render();
+            }
 
             window->refresh();
 
             check_scene_change();
         }
 
-        renderer->postrender_setup();
+        if (renderer != nullptr) {
+            renderer->postrender_setup();
+        }
+
         current_scene->on_exit();
     }
 
@@ -90,7 +101,10 @@ namespace bb {
 
     void Application::check_scene_change() {
         if (next_scene != nullptr) {
-            renderer->postrender_setup();
+            if (renderer != nullptr) {
+                renderer->postrender_setup();
+            }
+
             current_scene->on_exit();
             events.disconnect(current_scene);
 
@@ -98,7 +112,10 @@ namespace bb {
             next_scene = nullptr;
 
             current_scene->on_enter();
-            renderer->prerender_setup();
+
+            if (renderer != nullptr) {
+                renderer->prerender_setup();
+            }
         }
     }
 
@@ -142,6 +159,10 @@ namespace bb {
     }
 
     void Application::on_window_resized(const WindowResizedEvent& event) {
-        renderer->resize_framebuffers(event.width, event.height);
+        window->update_size(event.width, event.height);
+
+        if (renderer != nullptr) {
+            renderer->resize_framebuffers(event.width, event.height);
+        }
     }
 }

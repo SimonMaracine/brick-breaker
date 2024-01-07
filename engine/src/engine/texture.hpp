@@ -61,6 +61,7 @@ namespace bb {
 
         void bind(unsigned int unit) const;
         static void unbind();
+        void set_pixels(int xoffset, int yoffset, int width, int height, const void* pixels);
     private:
         void allocate_texture(int width, int height, const unsigned char* data) const;
 

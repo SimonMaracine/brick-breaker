@@ -159,6 +159,20 @@ namespace bb {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
+    void Texture::set_pixels(int xoffset, int yoffset, int width, int height, const void* pixels) {
+        switch (specification.format) {
+            case Format::Rgba8:
+                glTexSubImage2D(GL_TEXTURE_2D, 0, xoffset, yoffset, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+                break;
+            case Format::Rgb8:
+                glTexSubImage2D(GL_TEXTURE_2D, 0, xoffset, yoffset, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+                break;
+            case Format::R8:
+                glTexSubImage2D(GL_TEXTURE_2D, 0, xoffset, yoffset, width, height, GL_RED, GL_UNSIGNED_BYTE, pixels);
+                break;
+        }
+    }
+
     void Texture::allocate_texture(int width, int height, const unsigned char* data) const {
         switch (specification.format) {
             case Format::Rgba8:

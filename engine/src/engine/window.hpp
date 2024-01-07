@@ -36,11 +36,15 @@ namespace bb {
         void refresh() const;
         static double get_time();  // In seconds
     private:
+        void update_size(int width, int height);
+
         int width {};
         int height {};
 
         SDL_Window* window {nullptr};
         void* context {nullptr};
         Application* application {nullptr};
+
+        friend class Application;
     };
 }

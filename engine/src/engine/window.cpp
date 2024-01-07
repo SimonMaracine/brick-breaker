@@ -93,9 +93,6 @@ namespace bb {
                         case SDL_WINDOWEVENT_SIZE_CHANGED:
                             application->events.enqueue<WindowResizedEvent>(event.window.data1, event.window.data2);
 
-                            width = event.window.data1;
-                            height = event.window.data2;
-
                             break;
                         default:
                             break;
@@ -157,5 +154,10 @@ namespace bb {
 #else
         return static_cast<double>(SDL_GetTicks64()) / 1000.0;
 #endif
+    }
+
+    void Window::update_size(int width, int height) {
+        this->width = width;
+        this->height = height;
     }
 }

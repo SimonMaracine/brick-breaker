@@ -13,5 +13,6 @@ namespace bb {
         int min_width {640};
         int min_height {360};
         int samples {1};
+        bool disable_renderer {false};
     };
 }
