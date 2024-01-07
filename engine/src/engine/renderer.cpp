@@ -156,7 +156,7 @@ namespace bb {
     }
 
     void Renderer::capture(const Camera2D& camera_2d) {
-        this->camera_2d.projection_view_matrix = camera_2d.projection_matrix;
+        this->camera_2d.projection_matrix = camera_2d.projection_matrix;
     }
 
     void Renderer::add_shader(std::shared_ptr<Shader> shader) {
@@ -611,7 +611,7 @@ namespace bb {
 
         storage.text_shader->upload_uniform_mat4("u_model_matrix"_H, matrix);
         storage.text_shader->upload_uniform_vec3("u_color"_H, text.color);
-        storage.text_shader->upload_uniform_mat4("u_projection_matrix"_H, camera_2d.projection_view_matrix);
+        storage.text_shader->upload_uniform_mat4("u_projection_matrix"_H, camera_2d.projection_matrix);
 
         const float border_width = text.shadows ? 0.3f : 0.0f;
         const float offset = text.shadows ? -0.003f : 0.0f;

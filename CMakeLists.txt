@@ -4,6 +4,8 @@ project("brick-breaker" LANGUAGES CXX C)
 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
+set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Variable used to control the build type")
+
 function(set_warnings_and_standard TARGET)
     if(UNIX)
         target_compile_options(${TARGET} PRIVATE "-Wall" "-Wextra" "-Wpedantic")

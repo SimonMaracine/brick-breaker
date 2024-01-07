@@ -17,15 +17,17 @@ enum class BrickType {
 class Brick {
 public:
     Brick() = default;
-    Brick(unsigned int index, glm::ivec3 grid, BrickType type)
+    Brick(unsigned int index, glm::ivec3 grid, bool rot_y, bool rot_z, BrickType type)
         : index(index), grid(grid), type(type) {
         set_position(grid);
+        set_rotation(rot_y, rot_z);
     }
 
     static glm::vec3 get_dimensions() { return glm::vec3(2.0f, 1.0f, 1.0f) * get_scale(); }
     static float get_scale() { return 0.5f; }
 
     glm::vec3 get_position() const { return position; }
+    glm::vec3 get_rotation() const { return rotation; }
     glm::ivec3 get_grid() const { return grid; }
     BrickType get_type() const { return type; }
 
@@ -42,6 +44,14 @@ public:
         );
     }
 
+    void set_rotation(bool rot_y, bool rot_z) {
+        rotation = glm::vec3(
+            0.0f,
+            glm::radians(rot_y ? 180.0f : 0.0f),
+            glm::radians(rot_z ? 180.0f : 0.0f)
+        );
+    }
+
     void lower_grid() {
         grid.y--;
     }
@@ -50,6 +60,7 @@ private:
 
     glm::ivec3 grid {};
     glm::vec3 position {};
+    glm::vec3 rotation {};
 
     BrickType type {};
 };

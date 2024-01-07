@@ -80,6 +80,10 @@ I used some basic linear algebra, trigonometry and polar coordinates to solve th
 Knowing the ball's radius and its velocity I could calculate the angle at which it should rotate as it's moving. Basic
 math.
 
+Multiplying the velocity values of the objects with a special value called `delta time`, which is the difference
+between the previous frame and the current frame time, turns the units from *pixels per frame* to *meters per second*.
+In the 3D space, a length of 1 is one meter.
+
 ## Assets
 
 All the assets were created with `Blender` and `GIMP` by me except for the *wood-bare* and *skybox* textures, all the

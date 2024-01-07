@@ -120,7 +120,7 @@ namespace bb {
         } camera;
 
         struct {
-            glm::mat4 projection_view_matrix {glm::mat4(1.0f)};
+            glm::mat4 projection_matrix {glm::mat4(1.0f)};
         } camera_2d;
 
         struct SceneList {

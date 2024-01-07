@@ -210,6 +210,7 @@ void LevelScene::on_update() {
         r_brick.vertex_array = cache_vertex_array["brick"_H];
         r_brick.material = cache_material_instance[material_id];
         r_brick.position = brick.get_position();
+        r_brick.rotation = brick.get_rotation();
         r_brick.scale = brick.get_scale();
         add_renderable(r_brick);
 
@@ -324,7 +325,7 @@ void LevelScene::on_update() {
 
 void LevelScene::on_window_resized(const bb::WindowResizedEvent& event) {
     cam.set_projection_matrix(event.width, event.height, LENS_FOV, LENS_NEAR, LENS_FAR);
-    cam_2d.set_projection_matrix(0.0f, static_cast<float>(get_width()), 0.0f, static_cast<float>(get_height()));
+    cam_2d.set_projection_matrix(0.0f, static_cast<float>(event.width), 0.0f, static_cast<float>(event.height));
 }
 
 void LevelScene::on_key_pressed(const bb::KeyPressedEvent& event) {
@@ -1066,7 +1067,10 @@ std::optional<std::unordered_map<unsigned int, Brick>> LevelScene::load_level(co
             }
 
             const auto index {gen.generate()};
-            result[index] = Brick(index, glm::ivec3(x, y, z), static_cast<BrickType>(type));
+            const bool rot_y {glm::linearRand(0.0f, 1.0f) > 0.5f};
+            const bool rot_z {glm::linearRand(0.0f, 1.0f) > 0.5f};
+
+            result[index] = Brick(index, glm::ivec3(x, y, z), rot_y, rot_z, static_cast<BrickType>(type));
         }
     } catch (const nlohmann::json::exception&) {
         return std::nullopt;
