@@ -2,6 +2,8 @@
 
 #include "level.hpp"
 #include "menu.hpp"
+#include "levels.hpp"
+#include "about.hpp"
 #include "data.hpp"
 
 int main() {
@@ -16,8 +18,10 @@ int main() {
 
     try {
         bb::Application application {properties};
-        application.add_scene<Menu>();
+        application.add_scene<MenuScene>();
         application.add_scene<LevelScene>();
+        application.add_scene<LevelsScene>();
+        application.add_scene<AboutScene>();
         application.run("menu");
     } catch (bb::RuntimeError error) {
         bb::log_message("An error occurred: %d\n", error);

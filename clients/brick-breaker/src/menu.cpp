@@ -7,11 +7,13 @@
 #include <nlohmann/json.hpp>
 #include <glm/glm.hpp>
 
+#include "data.hpp"
+
 // https://freesound.org/people/greenvwbeetle/sounds/244656/
 // https://freesound.org/people/Denis%20Chapon/sounds/109435/
 // https://opengameart.org/content/start-sounds-1
 
-void Menu::on_enter() {
+void MenuScene::on_enter() {
     auto& data {user_data<Data>()};
 
     if (data.basic_font == nullptr) {
@@ -19,22 +21,21 @@ void Menu::on_enter() {
     }
 
     load_sounds();
-    reload_levels();
 
     cam_2d.set_projection_matrix(0.0f, static_cast<float>(get_width()), 0.0f, static_cast<float>(get_height()));
 
-    connect_event<bb::WindowResizedEvent, &Menu::on_window_resized>(this);
-    connect_event<bb::KeyReleasedEvent, &Menu::on_key_released>(this);
+    connect_event<bb::WindowResizedEvent, &MenuScene::on_window_resized>(this);
+    connect_event<bb::KeyReleasedEvent, &MenuScene::on_key_released>(this);
 
     bb::OpenGl::clear_color(0.1f, 0.1f, 0.1f);
     capture_mouse(false);
 }
 
-void Menu::on_exit() {
+void MenuScene::on_exit() {
 
 }
 
-void Menu::on_update() {
+void MenuScene::on_update() {
     auto& data {user_data<Data>()};
 
     capture(cam_2d);
@@ -82,104 +83,83 @@ void Menu::on_update() {
     }
 
     {
-        int y_position {get_height() - 160};
+        static constexpr float scale {1.0f};
+        const char* string1 {"Adventure Mode"};
+        const char* string2 {"Custom Levels"};
+        const char* string3 {"About"};
+        const char* string4 {"Quit"};
 
-        for (std::size_t i {0}; i < level_paths.size(); i++) {
-            const auto& name {level_paths[i].second};
-            const bool selected {i == static_cast<std::size_t>(level_index)};
+        const auto string_1 {menu_selection.get() == AdventureMode ? std::string("*") + string1 : string1};
+        const auto string_2 {menu_selection.get() == CustomLevels ? std::string("*") + string2 : string2};
+        const auto string_3 {menu_selection.get() == About ? std::string("*") + string3 : string3};
+        const auto string_4 {menu_selection.get() == Quit ? std::string("*") + string4 : string4};
 
-            static constexpr float scale {0.8f};
-            const auto string {selected ? "* " + name : name};
+        const auto [width1, height1] {data.basic_font->get_string_size(string_1, scale)};
+        const auto [width2, height2] {data.basic_font->get_string_size(string_2, scale)};
+        const auto [width3, height3] {data.basic_font->get_string_size(string_3, scale)};
+        const auto [width4, _] {data.basic_font->get_string_size(string_4, scale)};
 
-            const auto [width, height] {data.basic_font->get_string_size(string, scale)};
+        bb::Text text;
+        text.font = data.basic_font;
+        text.string = string_1;
+        text.position = glm::vec2(static_cast<float>(get_width() - width1) / 2.0f, get_height() - 170);
+        text.color = glm::vec3(0.75f);
+        text.scale = scale;
+        text.shadows = true;
+        add_text(text);
 
-            bb::Text text;
-            text.font = data.basic_font;
-            text.string = string;
-            text.position = glm::vec2(static_cast<float>(get_width() - width) / 2.0f, y_position);
-            text.color = selected ? glm::vec3(0.6f, 0.9f, 0.7f) : glm::vec3(0.75f, 0.75f, 0.75f);
-            text.scale = scale;
-            text.shadows = true;
-            add_text(text);
+        text.string = string_2;
+        text.position = glm::vec2(static_cast<float>(get_width() - width2) / 2.0f, get_height() - 170 - height1 - 10.0f);
+        add_text(text);
 
-            y_position -= height;
-        }
+        text.string = string_3;
+        text.position = glm::vec2(static_cast<float>(get_width() - width3) / 2.0f, get_height() - 170 - height1 - height2 - 20.0f);
+        add_text(text);
+
+        text.string = string_4;
+        text.position = glm::vec2(static_cast<float>(get_width() - width4) / 2.0f, get_height() - 170 - height1 - height2 - height3 - 30.0f);
+        add_text(text);
     }
 
     draw_version();
 }
 
-void Menu::on_window_resized(const bb::WindowResizedEvent& event) {
+void MenuScene::on_window_resized(const bb::WindowResizedEvent& event) {
     cam_2d.set_projection_matrix(0.0f, static_cast<float>(event.width), 0.0f, static_cast<float>(event.height));
 }
 
-void Menu::on_key_released(const bb::KeyReleasedEvent& event) {
+void MenuScene::on_key_released(const bb::KeyReleasedEvent& event) {
     auto& data {user_data<Data>()};
 
     switch (event.key) {
         case bb::KeyCode::K_UP:
-            level_index = level_index - 1 < 0 ? static_cast<int>(level_paths.size() - 1u) : level_index - 1;
+            menu_selection.up();
             play_sound(data.sound_switch);
             break;
         case bb::KeyCode::K_DOWN:
-            level_index = (level_index + 1) % static_cast<int>(level_paths.size());
+            menu_selection.down();
             play_sound(data.sound_switch);
             break;
         case bb::KeyCode::K_RETURN:
-            data.selected_level = level_paths.at(level_index).first;
-            change_scene("level");
-            break;
-        case bb::KeyCode::K_l:
-            reload_levels();
+            execute_selection(menu_selection.get());
             break;
         default:
             break;
     }
 }
 
-void Menu::load_font() {
+void MenuScene::load_font() {
     auto& data {user_data<Data>()};
 
     data.basic_font = std::make_shared<bb::Font>("data/fonts/CodeNewRoman/code-new-roman.regular.ttf", 40.0f, 8, 180, 40, 512);
 
     data.basic_font->begin_baking();
     data.basic_font->bake_ascii();
+    data.basic_font->bake_characters(u8"ă");
     data.basic_font->end_baking();
 }
 
-void Menu::reload_levels() {
-    level_paths.clear();
-
-    const char* levels_directory {"data/levels"};
-
-    const std::filesystem::path levels_path {levels_directory};
-
-    for (const auto& entry : std::filesystem::directory_iterator(levels_path)) {
-        if (!entry.is_regular_file()) {
-            continue;
-        }
-
-        const auto file {entry.path()};
-
-        if (file.extension().string() != ".json") {
-            continue;
-        }
-
-        const auto name {get_level_name(file.string())};
-
-        if (!name) {
-            continue;
-        }
-
-        level_paths.push_back(std::make_pair(file.string(), *name));
-
-        if (level_paths.size() == static_cast<std::size_t>(MAX_LEVELS)) {
-            break;
-        }
-    }
-}
-
-void Menu::load_sounds() {
+void MenuScene::load_sounds() {
     auto& data {user_data<Data>()};
 
     data.sound_start = std::make_shared<bb::SoundData>("data/sounds/start.wav");
@@ -193,29 +173,24 @@ void Menu::load_sounds() {
     data.sound_switch = std::make_shared<bb::SoundData>("data/sounds/switch.wav");
 }
 
-std::optional<std::string> Menu::get_level_name(const std::string& file_path) {
-    std::ifstream file {file_path};
-
-    if (!file.is_open()) {
-        return std::nullopt;
+void MenuScene::execute_selection(int selection) {
+    switch (selection) {
+        case AdventureMode:
+            change_scene("level");
+            break;
+        case CustomLevels:
+            change_scene("levels");
+            break;
+        case About:
+            change_scene("about");
+            break;
+        case Quit:
+            quit_application();
+            break;
     }
-
-    std::string result;
-
-    const nlohmann::json root = nlohmann::json::parse(file);
-
-    try {
-        const auto name {root["name"].get<std::string>()};
-
-        result = std::move(name);
-    } catch (const nlohmann::json::exception&) {
-        return std::nullopt;
-    }
-
-    return std::make_optional(result);
 }
 
-void Menu::draw_version() {
+void MenuScene::draw_version() {
     auto& data {user_data<Data>()};
 
     static constexpr float scale {0.3f};

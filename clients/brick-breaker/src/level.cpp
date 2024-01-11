@@ -727,7 +727,7 @@ void LevelScene::load_lamp() {
 
     {
         auto material_instance {cache_material_instance.load("lamp_bulb"_H, cache_material["flat"_H])};
-        material_instance->set_vec3("u_material.color"_H, glm::vec3(1.0f));
+        material_instance->set_vec3("u_material.color"_H, glm::vec3(1.0f, 1.0f, 0.95f));
     }
 }
 

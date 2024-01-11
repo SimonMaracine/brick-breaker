@@ -1,17 +1,11 @@
 #pragma once
 
-#include <vector>
-#include <string>
-#include <utility>
-#include <optional>
-#include <cstddef>
-
 #include <engine/engine.hpp>
 
-#include "data.hpp"
+#include "menu_selection.hpp"
 
-struct Menu : public bb::Scene {
-    Menu()
+struct MenuScene : public bb::Scene {
+    MenuScene()
         : bb::Scene("menu") {}
 
     virtual void on_enter() override;
@@ -22,19 +16,22 @@ struct Menu : public bb::Scene {
     void on_key_released(const bb::KeyReleasedEvent& event);
 
     void load_font();
-    void reload_levels();
     void load_sounds();
 
-    std::optional<std::string> get_level_name(const std::string& file_path);
-
+    void execute_selection(int selection);
     void draw_version();
 
     bb::Camera2D cam_2d;
 
-    std::vector<std::pair<std::string, std::string>> level_paths;
-    int level_index {0};  // Must be unsigned
+    enum {
+        AdventureMode,
+        CustomLevels,
+        About,
+        Quit,
+        COUNT
+    };
 
-    static constexpr int MAX_LEVELS {7};
+    MenuSelection<int> menu_selection {COUNT};
 
     static constexpr unsigned int VER_MAJOR {0};
     static constexpr unsigned int VER_MINOR {1};
