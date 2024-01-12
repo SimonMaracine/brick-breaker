@@ -9,7 +9,8 @@ inline const char* ADVENTURE_LEVELS[] {
     "data/levels/adventure/level1.json",
     "data/levels/adventure/level2.json",
     "data/levels/adventure/level3.json",
-    "data/levels/adventure/level4.json"
+    "data/levels/adventure/level4.json",
+    "data/levels/adventure/level5.json"
 };
 
 inline constexpr std::size_t ADVENTURE_MAX {sizeof(ADVENTURE_LEVELS) / sizeof(ADVENTURE_LEVELS[0])};

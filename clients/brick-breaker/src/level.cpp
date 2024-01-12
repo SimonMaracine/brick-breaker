@@ -350,8 +350,6 @@ void LevelScene::on_key_pressed(const bb::KeyPressedEvent& event) {
 }
 
 void LevelScene::on_key_released(const bb::KeyReleasedEvent& event) {
-    auto& data {user_data<Data>()};
-
     switch (event.key) {
         case bb::KeyCode::K_LEFT:
             arrows.left = false;
@@ -395,7 +393,11 @@ void LevelScene::on_mouse_button_released(const bb::MouseButtonReleasedEvent& ev
 
     if (data.mouse_input) {
         if (event.button == bb::MB_LEFT_ENUM) {
-            shoot_balls();
+            if (game_over == GameOver::Won) {
+                next_level();
+            } else {
+                shoot_balls();
+            }
         }
     }
 

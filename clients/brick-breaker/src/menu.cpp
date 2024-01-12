@@ -174,8 +174,11 @@ void MenuScene::load_sounds() {
 }
 
 void MenuScene::execute_selection(int selection) {
+    auto& data {user_data<Data>()};
+
     switch (selection) {
         case AdventureMode:
+            data.selected_level = ADVENTURE_LEVELS[data.current_level];
             change_scene("level");
             break;
         case CustomLevels:
