@@ -1055,6 +1055,7 @@ void LevelScene::next_level() {
     auto& data {user_data<Data>()};
 
     if (++data.current_level == ADVENTURE_MAX) {
+        reset();
         change_scene("menu");
         return;
     }
