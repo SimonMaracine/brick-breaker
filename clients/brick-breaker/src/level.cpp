@@ -108,8 +108,6 @@ void LevelScene::on_enter() {
 
     orbs.clear();
 
-    lives = 3u;
-    score = 0;
     game_over = GameOver::None;
 }
 
@@ -256,7 +254,7 @@ void LevelScene::on_update() {
 
     {
         static constexpr float scale {1.0f};
-        const auto string {"Score: " + std::to_string(score)};
+        const auto string {"Score: " + std::to_string(data.score)};
         const auto [_, height] {data.basic_font->get_string_size(string, scale)};
 
         bb::Text text;
@@ -271,7 +269,7 @@ void LevelScene::on_update() {
 
     {
         std::string string;
-        string.append(lives, '*');
+        string.append(data.lives, '*');
 
         static constexpr float scale {1.5f};
         const auto [width, height] {data.basic_font->get_string_size(string, scale)};
@@ -352,6 +350,8 @@ void LevelScene::on_key_pressed(const bb::KeyPressedEvent& event) {
 }
 
 void LevelScene::on_key_released(const bb::KeyReleasedEvent& event) {
+    auto& data {user_data<Data>()};
+
     switch (event.key) {
         case bb::KeyCode::K_LEFT:
             arrows.left = false;
@@ -360,12 +360,19 @@ void LevelScene::on_key_released(const bb::KeyReleasedEvent& event) {
             arrows.right = false;
             break;
         case bb::KeyCode::K_SPACE:
-            shoot_balls();
+            if (game_over == GameOver::Won) {
+                next_level();
+            } else {
+                shoot_balls();
+            }
+
             break;
         case bb::KeyCode::K_r:
+            reset();
             change_scene("level");
             break;
         case bb::KeyCode::K_ESCAPE:
+            reset();
             change_scene("menu");
             break;
         default:
@@ -1022,16 +1029,36 @@ void LevelScene::die() {
     auto& data {user_data<Data>()};
     play_sound(data.sound_die);
 
-    lives--;
+    data.lives--;
     balls.clear();
     orbs.clear();
 
-    if (lives == 0) {
+    if (data.lives == 0) {
         lose();
     } else {
         paddle = Paddle();
         create_ball();
     }
+}
+
+void LevelScene::reset() {
+    auto& data {user_data<Data>()};
+
+    data.lives = 3u;
+    data.score = 0;
+    data.current_level = 0u;
+}
+
+void LevelScene::next_level() {
+    auto& data {user_data<Data>()};
+
+    if (++data.current_level == ADVENTURE_MAX) {
+        change_scene("menu");
+        return;
+    }
+
+    data.selected_level = ADVENTURE_LEVELS[data.current_level];
+    change_scene("level");
 }
 
 std::optional<std::unordered_map<unsigned int, Brick>> LevelScene::load_level(const std::string& file_path, IdGenerator& gen) {
@@ -1164,7 +1191,7 @@ void LevelScene::on_orb_paddle_collision(const OrbPaddleCollisionEvent& event) {
         auto& data {user_data<Data>()};
         play_sound(data.sound_switch);
 
-        score += orb.get_points();
+        data.score += orb.get_points();
 
         switch (orb.get_type()) {
             case OrbType::SpeedUp:
@@ -1180,7 +1207,7 @@ void LevelScene::on_orb_paddle_collision(const OrbPaddleCollisionEvent& event) {
 
                 break;
             case OrbType::ExtraLife:
-                lives++;
+                data.lives++;
 
                 break;
             case OrbType::Die:
@@ -1244,9 +1271,10 @@ void LevelScene::on_ball_brick_collision(const BallBrickCollisionEvent& event) {
             }
         }
 
-        score += brick.get_points();
-
         auto& data {user_data<Data>()};
+
+        data.score += brick.get_points();
+
         play_sound(data.sound_collision_brick);
 
         if (glm::linearRand(0.0f, 1.0f) > ORB_RATE) {
